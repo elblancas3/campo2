@@ -1,5 +1,5 @@
 // ── Service Worker · Campo Geomática MX ──────────────────────────────────────
-const CACHE  = 'campo-v1';
+const CACHE  = 'campo-v2';
 const ASSETS = [
   './',
   './index.html',
