@@ -4,136 +4,84 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Campo · Levantamiento — Geomática MX</title>
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#D85A30">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<title>Campo · Geomática MX</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  :root {
-    --acc:#D85A30; --bg:#0f0f0f; --surf:#1a1a1a; --brd:#2a2a2a;
-    --txt:#e8e4dc; --mut:#666;
-    --green:#7ecf7e; --gbg:#0d1a0d; --gbrd:#2d5a2d;
-    --red:#cf7e7e;   --rbg:#2a1010; --rbrd:#5a2020;
-  }
-  html,body { height:100%; font-family:"IBM Plex Mono","Courier New",monospace; background:var(--bg); color:var(--txt); overflow:hidden; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --acc:#D85A30;--bg:#0f0f0f;--surf:#1a1a1a;--brd:#2a2a2a;
+  --txt:#e8e4dc;--mut:#666;
+  --grn:#7ecf7e;--gbg:#0d1a0d;--gbrd:#2d5a2d;
+  --red:#cf7e7e;--rbg:#2a1010;--rbrd:#5a2020;
+}
+html,body{height:100%;font-family:"IBM Plex Mono","Courier New",monospace;background:var(--bg);color:var(--txt);overflow:hidden}
 
-  /* MAP */
-  #map { position:fixed; top:0; left:0; right:0; bottom:var(--panel-h); background:#222; }
+/* MAP */
+#map{position:fixed;top:0;left:0;right:0;bottom:52vh;background:#111}
 
-  /* PANEL */
-  :root { --panel-h: 52vh; }
-  #panel {
-    position:fixed; bottom:0; left:0; right:0; height:var(--panel-h);
-    background:var(--surf); border-top:2px solid var(--brd);
-    display:flex; flex-direction:column; z-index:500;
-    transition:height .3s ease;
-  }
-  #panel.expanded { height:88vh; }
+/* LEGEND */
+#legend{position:absolute;top:8px;right:8px;z-index:400;background:rgba(15,15,15,.88);border:1px solid var(--brd);border-radius:4px;padding:8px 10px;font-size:10px;line-height:1.8}
+.lr{display:flex;align-items:center;gap:6px}
+.ls{width:11px;height:11px;border-radius:2px;flex-shrink:0}
 
-  /* Handle */
-  #handle {
-    padding:6px 0 2px; display:flex; flex-direction:column; align-items:center; gap:3px;
-    cursor:pointer; flex-shrink:0; border-bottom:1px solid var(--brd);
-  }
-  .hbar { width:36px; height:3px; background:var(--brd); border-radius:2px; }
+/* PANEL */
+#panel{position:fixed;bottom:0;left:0;right:0;height:52vh;background:var(--surf);border-top:2px solid var(--brd);display:flex;flex-direction:column;z-index:500;transition:height .3s ease}
+#panel.exp{height:90vh}
 
-  /* Tabs */
-  .tabs { display:flex; border-bottom:1px solid var(--brd); flex-shrink:0; }
-  .tab {
-    flex:1; padding:8px 0; background:none; border:none;
-    border-bottom:2px solid transparent;
-    color:var(--mut); font-family:inherit; font-size:11px;
-    letter-spacing:2px; text-transform:uppercase; cursor:pointer;
-  }
-  .tab.on { border-color:var(--acc); color:var(--acc); }
+/* HANDLE + TABS */
+#handle{padding:5px 0 0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0;border-bottom:1px solid var(--brd)}
+.hbar{width:36px;height:3px;background:var(--brd);border-radius:2px;margin-bottom:2px}
+.tabs{display:flex;width:100%}
+.tab{flex:1;padding:7px 0;background:none;border:none;border-bottom:2px solid transparent;color:var(--mut);font-family:inherit;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+.tab.on{border-color:var(--acc);color:var(--acc)}
 
-  /* Tab content */
-  .tpanel { display:none; flex:1; overflow-y:auto; padding:12px; flex-direction:column; gap:10px; }
-  .tpanel.on { display:flex; }
+/* TAB PANELS */
+.tp{display:none;flex:1;overflow-y:auto;padding:12px;flex-direction:column;gap:10px}
+.tp.on{display:flex}
 
-  /* Form elements */
-  .lbl { font-size:9px; color:var(--mut); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; display:flex; justify-content:space-between; }
-  input,select,textarea {
-    width:100%; padding:10px; background:var(--bg); border:1px solid var(--brd);
-    border-radius:4px; color:var(--txt); font-family:inherit; font-size:12px; outline:none;
-  }
-  textarea { resize:none; }
+/* GPS BAR */
+#gps-bar{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--bg);border:1px solid var(--brd);border-radius:4px;transition:all .3s}
+#gps-bar.ok{background:var(--gbg);border-color:var(--gbrd);color:var(--grn)}
+#gps-bar.err{background:var(--rbg);border-color:var(--rbrd);color:var(--red)}
+#gps-label{font-size:12px}
+#gps-acc{font-size:10px;color:var(--mut)}
 
-  /* GPS bar */
-  #gps-bar {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:10px 12px; background:var(--bg); border:1px solid var(--brd); border-radius:4px;
-  }
-  #gps-label { font-size:12px; }
-  #gps-acc   { font-size:10px; color:var(--mut); }
-  .gps-idle  { color:var(--mut); }
-  .gps-ok    { color:var(--green); background:var(--gbg); border-color:var(--gbrd) !important; }
-  .gps-err   { color:var(--red);   background:var(--rbg); border-color:var(--rbrd) !important; }
+/* CATEGORIES */
+.cat{display:flex;flex-direction:column;gap:6px}
+.cat-ttl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc);padding-bottom:5px;border-bottom:1px solid var(--brd)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:6px 11px;border:1px solid var(--brd);border-radius:16px;font-size:11px;cursor:pointer;background:var(--bg);color:var(--mut);user-select:none;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.pill.on{background:var(--acc);border-color:var(--acc);color:#fff}
 
-  /* Pills */
-  .pills { display:flex; flex-wrap:wrap; gap:5px; }
-  .pill {
-    padding:4px 10px; border:1px solid var(--brd); border-radius:16px;
-    font-size:11px; cursor:pointer; background:var(--surf); color:var(--mut);
-    transition:all .15s; user-select:none;
-  }
-  .pill.on { background:var(--acc); border-color:var(--acc); color:#fff; }
+/* NOTAS */
+textarea{width:100%;padding:9px;background:var(--bg);border:1px solid var(--brd);border-radius:4px;color:var(--txt);font-family:inherit;font-size:12px;outline:none;resize:none}
 
-  /* Submit */
-  #btn-reg {
-    padding:14px; background:var(--surf); border:none; border-radius:4px;
-    color:var(--mut); font-family:inherit; font-size:12px; letter-spacing:2px;
-    text-transform:uppercase; cursor:not-allowed; font-weight:700; width:100%;
-  }
-  #btn-reg.on { background:var(--acc); color:#fff; cursor:pointer; }
+/* BUTTONS */
+#btn-reg{width:100%;padding:14px;background:var(--surf);border:none;border-radius:4px;color:var(--mut);font-family:inherit;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:not-allowed;font-weight:700;transition:all .2s}
+#btn-reg.on{background:var(--acc);color:#fff;cursor:pointer}
+.lbl{font-size:9px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between}
 
-  /* Export */
-  .exp-row { display:flex; gap:8px; }
-  .exp-btn {
-    flex:1; padding:9px 0; background:var(--bg); border:1px solid var(--brd);
-    border-radius:4px; color:var(--txt); font-family:inherit; font-size:10px;
-    letter-spacing:2px; cursor:pointer; text-transform:uppercase;
-  }
+/* EXPORT */
+.exp-row{display:flex;gap:8px}
+.exp-btn{flex:1;padding:9px 0;background:var(--bg);border:1px solid var(--brd);border-radius:4px;color:var(--txt);font-family:inherit;font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
 
-  /* Point list */
-  .pt { background:var(--bg); border:1px solid var(--brd); border-radius:4px; padding:10px 12px; cursor:pointer; }
-  .pt-name { font-size:12px; font-weight:700; }
-  .pt-cat  { font-size:10px; color:var(--acc); margin-top:2px; letter-spacing:1px; }
-  .pt-sub  { font-size:10px; color:var(--mut); margin-top:1px; }
-  .pt-ts   { font-size:10px; color:var(--mut); margin-top:1px; }
+/* POINT LIST */
+.pt{background:var(--bg);border:1px solid var(--brd);border-radius:4px;padding:10px 12px;cursor:pointer}
+.pt-name{font-size:12px;font-weight:700}
+.pt-obs{display:flex;flex-wrap:wrap;gap:3px;margin:5px 0}
+.pt-tag{display:inline-block;background:#222;border:1px solid #333;border-radius:10px;padding:2px 8px;font-size:10px;color:var(--mut)}
+.pt-ageb{font-size:10px;color:#B7950B;margin-top:2px}
+.pt-ts{font-size:10px;color:var(--mut);margin-top:1px}
+.empty{text-align:center;padding:30px 0;color:var(--mut);font-size:11px}
 
-  /* Map live dot */
-  .live-dot {
-    width:14px; height:14px; border-radius:50%; background:#2196F3;
-    border:2px solid #fff; box-shadow:0 0 0 4px rgba(33,150,243,.3);
-    animation:pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{box-shadow:0 0 0 4px rgba(33,150,243,.3)} 50%{box-shadow:0 0 0 8px rgba(33,150,243,.1)} }
-  .campo-dot {
-    width:22px; height:22px; border-radius:50%; background:var(--acc);
-    border:2px solid #fff; display:flex; align-items:center; justify-content:center;
-    font-size:9px; font-weight:700; color:#fff;
-  }
-
-  /* AGEB legend */
-  #legend {
-    position:absolute; top:8px; right:8px; z-index:400;
-    background:rgba(15,15,15,.85); border:1px solid var(--brd);
-    border-radius:4px; padding:8px 10px; font-size:10px;
-  }
-  .leg-row { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
-  .leg-sq  { width:12px; height:12px; border-radius:2px; flex-shrink:0; }
-
-  /* Hint */
-  .hint { font-size:10px; color:var(--mut); text-align:center; }
-
-  /* Empty */
-  .empty { text-align:center; padding:30px 0; color:var(--mut); font-size:11px; }
+/* MAP ICONS */
+.live-dot{width:14px;height:14px;border-radius:50%;background:#2196F3;border:2px solid #fff;box-shadow:0 0 0 4px rgba(33,150,243,.3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(33,150,243,.3)}50%{box-shadow:0 0 0 8px rgba(33,150,243,.1)}}
+.campo-dot{width:22px;height:22px;border-radius:50%;background:var(--acc);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
 </style>
 </head>
 <body>
@@ -141,96 +89,90 @@
 <div id="map"></div>
 
 <div id="legend">
-  <div class="leg-row"><div class="leg-sq" style="background:#C0392B"></div>Muy alto</div>
-  <div class="leg-row"><div class="leg-sq" style="background:#D35400"></div>Alto</div>
-  <div class="leg-row"><div class="leg-sq" style="background:#B7950B"></div>Medio</div>
-  <div class="leg-row"><div class="leg-sq" style="background:#2E86AB"></div>Bajo</div>
-  <div class="leg-row"><div class="leg-sq" style="background:#2196F3;border-radius:50%"></div>Tú</div>
-  <div class="leg-row"><div class="leg-sq" style="background:#D85A30;border-radius:50%"></div>Puntos</div>
+  <div class="lr"><div class="ls" style="background:#C0392B"></div>Muy alto</div>
+  <div class="lr"><div class="ls" style="background:#D35400"></div>Alto</div>
+  <div class="lr"><div class="ls" style="background:#B7950B"></div>Medio</div>
+  <div class="lr"><div class="ls" style="background:#2E86AB"></div>Bajo</div>
+  <div class="lr"><div class="ls" style="background:#2196F3;border-radius:50%"></div>Tú</div>
+  <div class="lr"><div class="ls" style="background:#D85A30;border-radius:50%"></div>Puntos</div>
 </div>
 
 <div id="panel">
   <div id="handle">
     <div class="hbar"></div>
     <div class="tabs">
-      <button class="tab on" onclick="setTab('captura')">⊕ Capturar</button>
-      <button class="tab"    onclick="setTab('lista')">≡ Puntos</button>
+      <button class="tab on" onclick="setTab('cap')">⊕ Capturar</button>
+      <button class="tab"    onclick="setTab('lst')">≡ Puntos</button>
     </div>
   </div>
 
-  <!-- TAB: Captura -->
-  <div class="tpanel on" id="tab-captura">
+  <!-- CAPTURA -->
+  <div class="tp on" id="tp-cap">
 
-    <!-- GPS -->
     <div>
-      <div class="lbl">
-        <span>GPS en tiempo real</span>
-        <span id="perm-badge"></span>
-      </div>
-      <div id="gps-bar" class="gps-idle">
+      <div class="lbl"><span>GPS</span><span id="perm-badge"></span></div>
+      <div id="gps-bar">
         <span id="gps-label">◎ Iniciando GPS…</span>
         <span id="gps-acc"></span>
       </div>
     </div>
 
-    <!-- Categorías siempre visibles -->
-    <div class="cat-section">
-      <div class="cat-title">Educación</div>
-      <div class="pills">
-        <span class="pill" data-cat="Educación" onclick="togglePill2(this)">Escuela funcional</span>
-        <span class="pill" data-cat="Educación" onclick="togglePill2(this)">Escuela deteriorada</span>
+    <div class="cat">
+      <div class="cat-ttl">Educación</div>
+      <div class="pills" id="pills-edu">
+        <span class="pill" data-cat="Educación" data-val="Escuela funcional">Escuela funcional</span>
+        <span class="pill" data-cat="Educación" data-val="Escuela deteriorada">Escuela deteriorada</span>
       </div>
     </div>
 
-    <div class="cat-section">
-      <div class="cat-title">Salud</div>
-      <div class="pills">
-        <span class="pill" data-cat="Salud" onclick="togglePill2(this)">Centro de salud presente</span>
-        <span class="pill" data-cat="Salud" onclick="togglePill2(this)">Clínica o consultorio</span>
-        <span class="pill" data-cat="Salud" onclick="togglePill2(this)">Ausencia de servicios de salud</span>
+    <div class="cat">
+      <div class="cat-ttl">Salud</div>
+      <div class="pills" id="pills-sal">
+        <span class="pill" data-cat="Salud" data-val="Centro de salud presente">Centro de salud presente</span>
+        <span class="pill" data-cat="Salud" data-val="Clínica o consultorio">Clínica o consultorio</span>
+        <span class="pill" data-cat="Salud" data-val="Ausencia de servicios de salud">Ausencia de servicios de salud</span>
       </div>
     </div>
 
-    <div class="cat-section">
-      <div class="cat-title">Vivienda · Condiciones</div>
-      <div class="pills">
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Hacinamiento evidente</span>
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Paredes lámina / cartón</span>
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Paredes block / ladrillo</span>
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Techo de lámina</span>
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Ventanas improvisadas</span>
-        <span class="pill" data-cat="Vivienda · Condiciones" onclick="togglePill2(this)">Sin refrigerador u otros bienes</span>
+    <div class="cat">
+      <div class="cat-ttl">Vivienda · Condiciones</div>
+      <div class="pills" id="pills-viv">
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Hacinamiento evidente">Hacinamiento evidente</span>
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Paredes lámina / cartón">Paredes lámina / cartón</span>
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Paredes block / ladrillo">Paredes block / ladrillo</span>
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Techo de lámina">Techo de lámina</span>
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Ventanas improvisadas">Ventanas improvisadas</span>
+        <span class="pill" data-cat="Vivienda · Condiciones" data-val="Sin refrigerador u otros bienes">Sin refrigerador</span>
       </div>
     </div>
 
-    <div class="cat-section">
-      <div class="cat-title">Incidencia Urbana</div>
-      <div class="pills">
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Escombro</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Basura / tiradero</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Parque en mal estado</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Bache</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Calle en mal estado</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Luminaria dañada / ausente</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Drenaje tapado / desbordado</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Vandalismo / grafiti</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Fauna nociva</span>
-        <span class="pill" data-cat="Incidencia Urbana" onclick="togglePill2(this)">Construcción irregular</span>
+    <div class="cat">
+      <div class="cat-ttl">Incidencia Urbana</div>
+      <div class="pills" id="pills-inc">
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Escombro">Escombro</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Basura / tiradero">Basura / tiradero</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Parque en mal estado">Parque en mal estado</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Bache">Bache</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Calle en mal estado">Calle en mal estado</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Luminaria dañada / ausente">Luminaria dañada</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Drenaje tapado / desbordado">Drenaje tapado</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Vandalismo / grafiti">Vandalismo</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Fauna nociva">Fauna nociva</span>
+        <span class="pill" data-cat="Incidencia Urbana" data-val="Construcción irregular">Construcción irregular</span>
       </div>
     </div>
 
-    <!-- Notas -->
     <div>
-      <div class="lbl">Notas <span id="pill-count" style="color:var(--acc);font-size:9px"></span></div>
+      <div class="lbl"><span>Notas</span><span id="sel-count" style="color:var(--acc)"></span></div>
       <textarea id="c-notas" rows="2" placeholder="Observaciones adicionales…"></textarea>
     </div>
 
     <button id="btn-reg" onclick="registrar()">⊕ Registrar punto</button>
-    <div class="hint" id="hint">Esperando GPS…</div>
+
   </div>
 
-  <!-- TAB: Lista -->
-  <div class="tpanel" id="tab-lista">
+  <!-- LISTA -->
+  <div class="tp" id="tp-lst">
     <div class="exp-row" id="exp-row" style="display:none">
       <button class="exp-btn" onclick="expGeoJSON()">↓ GeoJSON</button>
       <button class="exp-btn" onclick="expCSV()">↓ CSV</button>
@@ -240,362 +182,338 @@
 </div>
 
 <script>
-// ── AGEB DATA ──────────────────────────────────────────────────────────────────
+// ── AGEB DATA ─────────────────────────────────────────────────────────────────
 const GEOJSON = {"type":"FeatureCollection","name":"AGEBS_FICHAS","crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}},"features":[{"type":"Feature","properties":{"CVEGEO":"1900600012325","OBJECTID":1,"CVEGEO_JOI":"1900600012325","CVE_MUN":"19006","NOM_MUN":"Apodaca","AGEB":"2325","POB_TOT":119,"IM_2020":114.9913,"IMN_2_2021":0.8983,"IRS_CARTO":10.1731,"IM_NORM_10":80.13,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":14.2857,"SBASC":20.4819,"PSDSS":21.0084,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":77.3109,"OVPT":0.0,"OVHAC":31.9328,"OVSREF":0.8403,"OVSINT":49.5798,"OSCEL":0.0,"TOP1_IND":"Viv. sin agua (77.3%)","TOP1_CLAVE":"OVSAE","TOP1_PCT":77.31,"TOP2_IND":"Viv. sin internet (49.6%)","TOP3_IND":"Viv. hacinamiento (31.9%)","ETIQUETA_M":"AGEB 2325 | Apodaca | Grado: Muy alto","POPUP_HTML":"<b>AGEB 2325</b> — Apodaca<br><b>Grado:</b> Muy alto | <b>IM:</b> 114.99<br><b>Pob:</b> 119<br>������ Viv. sin agua (77.3%)<br>������ Viv. sin internet (49.6%)<br>������ Viv. hacinamiento (31.9%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.150095,25.757261],[-100.150193,25.757181],[-100.150948,25.756792],[-100.151456,25.756513],[-100.15149,25.756305],[-100.15163,25.755526],[-100.151718,25.755029],[-100.152446,25.755377],[-100.152793,25.755561],[-100.152937,25.755688],[-100.15311,25.75595],[-100.15422,25.756491],[-100.154666,25.756688],[-100.154272,25.756781],[-100.153856,25.756858],[-100.153356,25.756954],[-100.151385,25.757336],[-100.151156,25.757377],[-100.150955,25.757417],[-100.150537,25.757499],[-100.150131,25.757579],[-100.150013,25.757613],[-100.150095,25.757261]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900600010437","OBJECTID":2,"CVEGEO_JOI":"1900600010437","CVE_MUN":"19006","NOM_MUN":"Apodaca","AGEB":"0437","POB_TOT":4597,"IM_2020":119.2243,"IMN_2_2021":0.9313,"IRS_CARTO":6.8665,"IM_NORM_10":93.89,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":3,"P6A14NAE":11.4413,"SBASC":36.6948,"PSDSS":26.217,"OVSDE":0.0,"OVSEE":0.1092,"OVSAE":0.0655,"OVPT":0.371,"OVHAC":31.1135,"OVSREF":4.1266,"OVSINT":38.9168,"OSCEL":8.3861,"TOP1_IND":"Viv. sin internet (38.9%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":38.92,"TOP2_IND":"Sin educ. básica (36.7%)","TOP3_IND":"Viv. hacinamiento (31.1%)","ETIQUETA_M":"AGEB 0437 | Apodaca | Grado: Medio","POPUP_HTML":"<b>AGEB 0437</b> — Apodaca<br><b>Grado:</b> Medio | <b>IM:</b> 119.22<br><b>Pob:</b> 4,597<br>������ Viv. sin internet (38.9%)<br>������ Sin educ. básica (36.7%)<br>������ Viv. hacinamiento (31.1%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.155318,25.762824],[-100.155282,25.762473],[-100.155243,25.762094],[-100.155197,25.761715],[-100.15517,25.761496],[-100.155154,25.761313],[-100.155092,25.760731],[-100.155035,25.760302],[-100.155234,25.760109],[-100.155439,25.759911],[-100.155429,25.759829],[-100.155417,25.759738],[-100.155226,25.759776],[-100.155001,25.75977],[-100.154957,25.75937],[-100.154917,25.758988],[-100.154875,25.758609],[-100.154827,25.758154],[-100.154666,25.756688],[-100.154855,25.756653],[-100.155004,25.756626],[-100.155074,25.756612],[-100.15532,25.756562],[-100.155744,25.75648],[-100.156152,25.756401],[-100.156561,25.756322],[-100.15697,25.756244],[-100.157303,25.75768],[-100.157683,25.759294],[-100.157704,25.759359],[-100.157733,25.759448],[-100.157822,25.759822],[-100.157902,25.760192],[-100.157994,25.760573],[-100.158093,25.760946],[-100.158182,25.761322],[-100.158264,25.761684],[-100.158349,25.762047],[-100.158445,25.762421],[-100.158542,25.762816],[-100.158582,25.762983],[-100.158177,25.763007],[-100.157751,25.763041],[-100.157322,25.763068],[-100.156895,25.763104],[-100.155801,25.763184],[-100.155592,25.763206],[-100.155367,25.763263],[-100.155318,25.762824]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900600010422","OBJECTID":3,"CVEGEO_JOI":"1900600010422","CVE_MUN":"19006","NOM_MUN":"Apodaca","AGEB":"0422","POB_TOT":5829,"IM_2020":119.4553,"IMN_2_2021":0.9331,"IRS_CARTO":6.686,"IM_NORM_10":94.64,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":11.828,"SBASC":35.7355,"PSDSS":23.5547,"OVSDE":0.0,"OVSEE":0.0344,"OVSAE":0.0687,"OVPT":0.2924,"OVHAC":31.6151,"OVSREF":4.6392,"OVSINT":34.3471,"OSCEL":8.4953,"TOP1_IND":"Sin educ. básica (35.7%)","TOP1_CLAVE":"SBASC","TOP1_PCT":35.74,"TOP2_IND":"Viv. sin internet (34.3%)","TOP3_IND":"Viv. hacinamiento (31.6%)","ETIQUETA_M":"AGEB 0422 | Apodaca | Grado: Medio","POPUP_HTML":"<b>AGEB 0422</b> — Apodaca<br><b>Grado:</b> Medio | <b>IM:</b> 119.46<br><b>Pob:</b> 5,829<br>������ Sin educ. básica (35.7%)<br>������ Viv. sin internet (34.3%)<br>������ Viv. hacinamiento (31.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.158582,25.762983],[-100.158542,25.762816],[-100.158445,25.762421],[-100.158349,25.762047],[-100.158264,25.761684],[-100.158182,25.761322],[-100.158093,25.760946],[-100.157994,25.760573],[-100.157902,25.760192],[-100.157822,25.759822],[-100.157733,25.759448],[-100.157704,25.759359],[-100.157683,25.759294],[-100.157303,25.75768],[-100.15697,25.756244],[-100.157478,25.756142],[-100.157534,25.756134],[-100.158037,25.756038],[-100.158468,25.755956],[-100.158917,25.755866],[-100.159323,25.755785],[-100.159508,25.755749],[-100.159874,25.75568],[-100.159696,25.756734],[-100.159676,25.757052],[-100.159759,25.757208],[-100.159788,25.757281],[-100.160119,25.757864],[-100.160246,25.758031],[-100.160437,25.758216],[-100.161152,25.758879],[-100.161486,25.759186],[-100.161778,25.759448],[-100.162092,25.759707],[-100.162413,25.759947],[-100.162679,25.76014],[-100.162763,25.76019],[-100.162918,25.760284],[-100.163066,25.760356],[-100.163108,25.760367],[-100.163282,25.760388],[-100.163532,25.760351],[-100.163621,25.760315],[-100.163772,25.760285],[-100.16403,25.760233],[-100.164189,25.761684],[-100.16431,25.762803],[-100.164427,25.763965],[-100.164338,25.763901],[-100.164276,25.763917],[-100.164236,25.763917],[-100.164187,25.763687],[-100.164118,25.763565],[-100.164035,25.763503],[-100.163898,25.763427],[-100.163868,25.763483],[-100.163926,25.763947],[-100.163927,25.763984],[-100.162289,25.763046],[-100.161189,25.762454],[-100.160964,25.762809],[-100.160111,25.762858],[-100.159658,25.762906],[-100.158582,25.762983]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900900010157","OBJECTID":4,"CVEGEO_JOI":"1900900010157","CVE_MUN":"19009","NOM_MUN":"Cadereyta Jiménez","AGEB":"0157","POB_TOT":170,"IM_2020":118.1164,"IMN_2_2021":0.9227,"IRS_CARTO":7.7319,"IM_NORM_10":90.29,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":20.0,"SBASC":24.5763,"PSDSS":27.0588,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.0,"OVHAC":22.3529,"OVSREF":11.1765,"OVSINT":56.4706,"OSCEL":8.8235,"TOP1_IND":"Viv. sin internet (56.5%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":56.47,"TOP2_IND":"Sin servicio de salud (27.1%)","TOP3_IND":"Sin educ. básica (24.6%)","ETIQUETA_M":"AGEB 0157 | Cadereyta Jiménez | Grado: Alto","POPUP_HTML":"<b>AGEB 0157</b> — Cadereyta Jiménez<br><b>Grado:</b> Alto | <b>IM:</b> 118.12<br><b>Pob:</b> 170<br>������ Viv. sin internet (56.5%)<br>������ Sin servicio de salud (27.1%)<br>������ Sin educ. básica (24.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.056483,25.611407],[-100.056409,25.611403],[-100.056357,25.61142],[-100.056315,25.611456],[-100.05616,25.611351],[-100.054386,25.610147],[-100.054374,25.610139],[-100.054768,25.609641],[-100.053767,25.608964],[-100.05358,25.60919],[-100.053369,25.609049],[-100.054625,25.607545],[-100.055279,25.607881],[-100.055543,25.607909],[-100.055905,25.607837],[-100.056624,25.608196],[-100.056297,25.608526],[-100.056395,25.60929],[-100.056408,25.609389],[-100.056457,25.609775],[-100.056511,25.609863],[-100.056628,25.609987],[-100.056757,25.610078],[-100.056787,25.610092],[-100.056871,25.610134],[-100.056931,25.610176],[-100.05695,25.610241],[-100.056652,25.611268],[-100.056632,25.611342],[-100.056667,25.611465],[-100.056556,25.611428],[-100.056483,25.611407]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900900010354","OBJECTID":5,"CVEGEO_JOI":"1900900010354","CVE_MUN":"19009","NOM_MUN":"Cadereyta Jiménez","AGEB":"0354","POB_TOT":65,"IM_2020":114.3021,"IMN_2_2021":0.8929,"IRS_CARTO":10.7115,"IM_NORM_10":77.89,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":40.0,"SBASC":25.9259,"PSDSS":33.8462,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.0,"OVHAC":46.1538,"OVSREF":0.0,"OVSINT":49.2308,"OSCEL":3.0769,"TOP1_IND":"Viv. sin internet (49.2%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":49.23,"TOP2_IND":"Viv. hacinamiento (46.2%)","TOP3_IND":"Pob. 6-14 sin escuela (40.0%)","ETIQUETA_M":"AGEB 0354 | Cadereyta Jiménez | Grado: Muy alto","POPUP_HTML":"<b>AGEB 0354</b> — Cadereyta Jiménez<br><b>Grado:</b> Muy alto | <b>IM:</b> 114.30<br><b>Pob:</b> 65<br>������ Viv. sin internet (49.2%)<br>������ Viv. hacinamiento (46.2%)<br>������ Pob. 6-14 sin escuela (40.0%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.028058,25.598107],[-100.027692,25.598066],[-100.027285,25.598078],[-100.026423,25.598185],[-100.025731,25.598334],[-100.019041,25.60014],[-100.018345,25.600328],[-100.018056,25.600406],[-100.017954,25.600181],[-100.017921,25.600072],[-100.017895,25.599947],[-100.017859,25.59984],[-100.017794,25.599719],[-100.017731,25.599596],[-100.017668,25.599473],[-100.017518,25.599239],[-100.017476,25.599109],[-100.017433,25.598979],[-100.01742,25.598844],[-100.017406,25.598709],[-100.017383,25.598439],[-100.017294,25.598181],[-100.017248,25.598052],[-100.017208,25.597942],[-100.018402,25.597921],[-100.023932,25.597349],[-100.02436,25.596883],[-100.024383,25.5969],[-100.025206,25.596007],[-100.025314,25.596083],[-100.02663,25.596101],[-100.02726,25.596109],[-100.030078,25.596176],[-100.033211,25.59624],[-100.034114,25.596258],[-100.034538,25.596262],[-100.035433,25.596271],[-100.035434,25.596304],[-100.03586,25.599286],[-100.035499,25.599965],[-100.034962,25.600135],[-100.033691,25.601677],[-100.033625,25.601747],[-100.032438,25.600929],[-100.03125,25.600111],[-100.029365,25.598876],[-100.028245,25.598161],[-100.028058,25.598107]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900900010301","OBJECTID":6,"CVEGEO_JOI":"1900900010301","CVE_MUN":"19009","NOM_MUN":"Cadereyta Jiménez","AGEB":"0301","POB_TOT":80,"IM_2020":117.3151,"IMN_2_2021":0.9164,"IRS_CARTO":8.3579,"IM_NORM_10":87.68,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":7.6923,"SBASC":49.1803,"PSDSS":26.25,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":20.0,"OVPT":0.0,"OVHAC":28.75,"OVSREF":7.5,"OVSINT":60.0,"OSCEL":7.5,"TOP1_IND":"Viv. sin internet (60.0%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":60.0,"TOP2_IND":"Sin educ. básica (49.2%)","TOP3_IND":"Viv. hacinamiento (28.8%)","ETIQUETA_M":"AGEB 0301 | Cadereyta Jiménez | Grado: Alto","POPUP_HTML":"<b>AGEB 0301</b> — Cadereyta Jiménez<br><b>Grado:</b> Alto | <b>IM:</b> 117.32<br><b>Pob:</b> 80<br>������ Viv. sin internet (60.0%)<br>������ Sin educ. básica (49.2%)<br>������ Viv. hacinamiento (28.8%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.035434,25.596304],[-100.035433,25.596271],[-100.034538,25.596262],[-100.034114,25.596258],[-100.033211,25.59624],[-100.03323,25.595251],[-100.03323,25.59525],[-100.033228,25.595008],[-100.033228,25.595007],[-100.033217,25.59471],[-100.033223,25.594512],[-100.033223,25.594512],[-100.033237,25.594106],[-100.033237,25.594106],[-100.033257,25.594018],[-100.033257,25.594018],[-100.03324,25.593963],[-100.033242,25.593232],[-100.033242,25.593231],[-100.033255,25.592914],[-100.033255,25.592914],[-100.033307,25.592855],[-100.033369,25.592833],[-100.033511,25.592831],[-100.03368,25.592848],[-100.033916,25.592876],[-100.034566,25.59289],[-100.034587,25.592889],[-100.034599,25.592604],[-100.034599,25.592604],[-100.034599,25.592603],[-100.034584,25.591802],[-100.034584,25.591801],[-100.034656,25.591763],[-100.034821,25.591751],[-100.035054,25.591758],[-100.035291,25.591783],[-100.035927,25.591751],[-100.036232,25.591732],[-100.037079,25.591746],[-100.037205,25.59176],[-100.037292,25.591806],[-100.037317,25.591798],[-100.037393,25.591767],[-100.037502,25.59176],[-100.037847,25.591775],[-100.037992,25.591782],[-100.038519,25.591782],[-100.038587,25.5918],[-100.038612,25.591825],[-100.03863,25.591861],[-100.03863,25.591861],[-100.03863,25.592771],[-100.038636,25.592883],[-100.038644,25.593021],[-100.038651,25.593296],[-100.038651,25.593296],[-100.038606,25.594118],[-100.038606,25.594119],[-100.03859,25.594566],[-100.038606,25.595144],[-100.038606,25.595144],[-100.038606,25.595151],[-100.038606,25.595151],[-100.038611,25.596067],[-100.038599,25.59616],[-100.038585,25.59621],[-100.03854,25.596259],[-100.03854,25.596259],[-100.038674,25.59626],[-100.040791,25.596269],[-100.042464,25.596288],[-100.042706,25.596274],[-100.043282,25.596144],[-100.043515,25.596057],[-100.043897,25.595853],[-100.04415,25.595683],[-100.044321,25.595542],[-100.044501,25.595376],[-100.044653,25.595198],[-100.044755,25.595054],[-100.044861,25.59489],[-100.045098,25.594463],[-100.045098,25.594464],[-100.044904,25.596667],[-100.044539,25.60091],[-100.044406,25.602463],[-100.044031,25.606122],[-100.043781,25.608594],[-100.041224,25.606891],[-100.039767,25.605892],[-100.0381,25.604763],[-100.035669,25.603155],[-100.033625,25.601747],[-100.033691,25.601677],[-100.034962,25.600135],[-100.035499,25.599965],[-100.03586,25.599286],[-100.035434,25.596304]]]]}},{"type":"Feature","properties":{"CVEGEO":"1900900010852","OBJECTID":7,"CVEGEO_JOI":"1900900010852","CVE_MUN":"19009","NOM_MUN":"Cadereyta Jiménez","AGEB":"0852","POB_TOT":1301,"IM_2020":120.8606,"IMN_2_2021":0.9441,"IRS_CARTO":5.5883,"IM_NORM_10":99.21,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":3.1496,"SBASC":36.5217,"PSDSS":13.0669,"OVSDE":0.3089,"OVSEE":0.2317,"OVSAE":0.1544,"OVPT":1.6216,"OVHAC":38.1467,"OVSREF":5.7143,"OVSINT":81.0039,"OSCEL":5.0193,"TOP1_IND":"Viv. sin internet (81.0%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":81.0,"TOP2_IND":"Viv. hacinamiento (38.1%)","TOP3_IND":"Sin educ. básica (36.5%)","ETIQUETA_M":"AGEB 0852 | Cadereyta Jiménez | Grado: Medio","POPUP_HTML":"<b>AGEB 0852</b> — Cadereyta Jiménez<br><b>Grado:</b> Medio | <b>IM:</b> 120.86<br><b>Pob:</b> 1,301<br>������ Viv. sin internet (81.0%)<br>������ Viv. hacinamiento (38.1%)<br>������ Sin educ. básica (36.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.029035,25.591125],[-100.0289,25.591121],[-100.028481,25.591133],[-100.028026,25.591213],[-100.028027,25.590946],[-100.028031,25.589835],[-100.028028,25.589319],[-100.028024,25.588705],[-100.028019,25.587744],[-100.028029,25.587323],[-100.028029,25.587323],[-100.028066,25.587309],[-100.028154,25.587277],[-100.028214,25.587277],[-100.02831,25.587263],[-100.028353,25.587253],[-100.028439,25.587234],[-100.028753,25.587173],[-100.029395,25.587023],[-100.029779,25.586922],[-100.029969,25.586846],[-100.030215,25.586714],[-100.030271,25.586684],[-100.03036,25.586637],[-100.030555,25.586512],[-100.030642,25.586462],[-100.030841,25.586343],[-100.031061,25.586275],[-100.031061,25.586276],[-100.031089,25.586325],[-100.031096,25.586363],[-100.031079,25.58644],[-100.031148,25.586448],[-100.031255,25.586461],[-100.03153,25.586493],[-100.031858,25.586531],[-100.03192,25.586538],[-100.032243,25.586575],[-100.032553,25.586611],[-100.032973,25.58666],[-100.033105,25.586676],[-100.0332,25.586688],[-100.033349,25.586705],[-100.033905,25.586768],[-100.033987,25.586778],[-100.03465,25.586853],[-100.035168,25.586912],[-100.035165,25.586947],[-100.035253,25.586962],[-100.03666,25.587124],[-100.036763,25.587122],[-100.038422,25.58731],[-100.038625,25.587336],[-100.038593,25.587535],[-100.038533,25.587907],[-100.03849,25.588277],[-100.03845,25.588691],[-100.036503,25.588448],[-100.036309,25.588424],[-100.035788,25.588663],[-100.035684,25.588695],[-100.035026,25.588597],[-100.034994,25.588604],[-100.034937,25.589039],[-100.034808,25.589018],[-100.03459,25.589167],[-100.033775,25.589614],[-100.033752,25.589611],[-100.032534,25.589514],[-100.032587,25.588708],[-100.030784,25.588507],[-100.030556,25.590055],[-100.030466,25.590813],[-100.030447,25.590909],[-100.030664,25.590935],[-100.030731,25.5909],[-100.031172,25.59095],[-100.031378,25.590761],[-100.031501,25.59086],[-100.031273,25.591077],[-100.031205,25.591093],[-100.030893,25.591057],[-100.03063,25.591216],[-100.030339,25.591365],[-100.030099,25.591449],[-100.029939,25.59147],[-100.029711,25.591475],[-100.029575,25.591468],[-100.029476,25.591437],[-100.029379,25.591367],[-100.02925,25.591245],[-100.029145,25.591171],[-100.029035,25.591125]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901900010011","OBJECTID":8,"CVEGEO_JOI":"1901900010011","CVE_MUN":"19019","NOM_MUN":"San Pedro Garza García","AGEB":"0011","POB_TOT":5460,"IM_2020":120.6744,"IMN_2_2021":0.9427,"IRS_CARTO":5.7337,"IM_NORM_10":98.61,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":4.0107,"SBASC":37.4203,"PSDSS":24.9358,"OVSDE":0.0,"OVSEE":0.0184,"OVSAE":0.0,"OVPT":0.3487,"OVHAC":30.0973,"OVSREF":1.8355,"OVSINT":30.7678,"OSCEL":11.6719,"TOP1_IND":"Sin educ. básica (37.4%)","TOP1_CLAVE":"SBASC","TOP1_PCT":37.42,"TOP2_IND":"Viv. sin internet (30.8%)","TOP3_IND":"Viv. hacinamiento (30.1%)","ETIQUETA_M":"AGEB 0011 | San Pedro Garza García | Grado: Medio","POPUP_HTML":"<b>AGEB 0011</b> — San Pedro Garza García<br><b>Grado:</b> Medio | <b>IM:</b> 120.67<br><b>Pob:</b> 5,460<br>������ Sin educ. básica (37.4%)<br>������ Viv. sin internet (30.8%)<br>������ Viv. hacinamiento (30.1%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.410699,25.686522],[-100.41082,25.686077],[-100.410824,25.686055],[-100.410856,25.68586],[-100.410867,25.685795],[-100.410888,25.685675],[-100.410907,25.68556],[-100.41094,25.685404],[-100.410962,25.685299],[-100.410992,25.685156],[-100.411019,25.685016],[-100.411039,25.684928],[-100.411077,25.684742],[-100.411096,25.684641],[-100.411169,25.684256],[-100.411208,25.684048],[-100.411247,25.683841],[-100.411274,25.683692],[-100.411314,25.68343],[-100.411555,25.682236],[-100.411579,25.682046],[-100.411604,25.68185],[-100.411752,25.681068],[-100.411847,25.680605],[-100.411865,25.680935],[-100.411883,25.681452],[-100.412301,25.681541],[-100.412715,25.681622],[-100.413136,25.68171],[-100.413572,25.6818],[-100.413977,25.681797],[-100.414401,25.681791],[-100.414797,25.681789],[-100.414834,25.681792],[-100.414849,25.6823],[-100.41485,25.68285],[-100.414844,25.683103],[-100.414841,25.683515],[-100.414851,25.684143],[-100.414854,25.684411],[-100.414834,25.684445],[-100.41445,25.685235],[-100.414345,25.685487],[-100.414163,25.685883],[-100.414102,25.68602],[-100.414048,25.686137],[-100.413722,25.686763],[-100.413672,25.686856],[-100.413618,25.686957],[-100.413581,25.687027],[-100.413547,25.687049],[-100.414124,25.687321],[-100.413861,25.687694],[-100.41366,25.688172],[-100.413591,25.688122],[-100.413297,25.688168],[-100.41307,25.688265],[-100.412659,25.688071],[-100.412563,25.688128],[-100.412545,25.688134],[-100.412479,25.688142],[-100.412212,25.688067],[-100.41208,25.688051],[-100.412071,25.687967],[-100.412004,25.68793],[-100.411819,25.687797],[-100.411786,25.687674],[-100.411674,25.687601],[-100.411551,25.687522],[-100.411478,25.687456],[-100.411362,25.687347],[-100.411315,25.687309],[-100.411232,25.687292],[-100.411195,25.687299],[-100.411139,25.687308],[-100.411045,25.687324],[-100.410587,25.687277],[-100.410699,25.686522]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901900010312","OBJECTID":9,"CVEGEO_JOI":"1901900010312","CVE_MUN":"19019","NOM_MUN":"San Pedro Garza García","AGEB":"0312","POB_TOT":1942,"IM_2020":120.4751,"IMN_2_2021":0.9411,"IRS_CARTO":5.8893,"IM_NORM_10":97.96,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":2.0761,"SBASC":38.3391,"PSDSS":28.3728,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.0,"OVHAC":34.552,"OVSREF":2.6262,"OVSINT":31.7714,"OSCEL":12.8218,"TOP1_IND":"Sin educ. básica (38.3%)","TOP1_CLAVE":"SBASC","TOP1_PCT":38.34,"TOP2_IND":"Viv. hacinamiento (34.6%)","TOP3_IND":"Viv. sin internet (31.8%)","ETIQUETA_M":"AGEB 0312 | San Pedro Garza García | Grado: Medio","POPUP_HTML":"<b>AGEB 0312</b> — San Pedro Garza García<br><b>Grado:</b> Medio | <b>IM:</b> 120.48<br><b>Pob:</b> 1,942<br>������ Sin educ. básica (38.3%)<br>������ Viv. hacinamiento (34.6%)<br>������ Viv. sin internet (31.8%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.41366,25.688172],[-100.413861,25.687694],[-100.414124,25.687321],[-100.413547,25.687049],[-100.413581,25.687027],[-100.413618,25.686957],[-100.413672,25.686856],[-100.413722,25.686763],[-100.414048,25.686137],[-100.414102,25.68602],[-100.414163,25.685883],[-100.414345,25.685487],[-100.41445,25.685235],[-100.414834,25.684445],[-100.415486,25.684431],[-100.415641,25.684437],[-100.416056,25.684475],[-100.416477,25.684524],[-100.416876,25.68457],[-100.417207,25.684607],[-100.417301,25.684625],[-100.417052,25.686092],[-100.416974,25.686482],[-100.416919,25.68679],[-100.416907,25.686918],[-100.416864,25.687117],[-100.416796,25.687407],[-100.416763,25.687611],[-100.416749,25.68768],[-100.416601,25.688484],[-100.416467,25.689089],[-100.416334,25.689738],[-100.416227,25.690287],[-100.416221,25.690316],[-100.416221,25.690318],[-100.416194,25.690289],[-100.415913,25.690117],[-100.41566,25.69002],[-100.415147,25.689441],[-100.414669,25.689204],[-100.414605,25.688921],[-100.414549,25.688698],[-100.414195,25.688581],[-100.413794,25.688361],[-100.41366,25.688172]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903900012398","OBJECTID":10,"CVEGEO_JOI":"1903900012398","CVE_MUN":"19039","NOM_MUN":"Monterrey","AGEB":"2398","POB_TOT":7871,"IM_2020":119.8437,"IMN_2_2021":0.9362,"IRS_CARTO":6.3826,"IM_NORM_10":95.9,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":4.7703,"SBASC":35.9047,"PSDSS":34.3249,"OVSDE":0.1779,"OVSEE":0.0,"OVSAE":0.4701,"OVPT":1.0291,"OVHAC":32.5372,"OVSREF":2.0455,"OVSINT":31.3175,"OSCEL":9.6938,"TOP1_IND":"Sin educ. básica (35.9%)","TOP1_CLAVE":"SBASC","TOP1_PCT":35.9,"TOP2_IND":"Sin servicio de salud (34.3%)","TOP3_IND":"Viv. hacinamiento (32.5%)","ETIQUETA_M":"AGEB 2398 | Monterrey | Grado: Medio","POPUP_HTML":"<b>AGEB 2398</b> — Monterrey<br><b>Grado:</b> Medio | <b>IM:</b> 119.84<br><b>Pob:</b> 7,871<br>������ Sin educ. básica (35.9%)<br>������ Sin servicio de salud (34.3%)<br>������ Viv. hacinamiento (32.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.361569,25.776413],[-100.361692,25.776374],[-100.362223,25.775922],[-100.361992,25.775595],[-100.361772,25.775299],[-100.361566,25.774979],[-100.361368,25.774615],[-100.36094,25.774844],[-100.360638,25.774442],[-100.360453,25.774059],[-100.361402,25.773594],[-100.361456,25.773568],[-100.363001,25.772837],[-100.363923,25.772409],[-100.365394,25.771706],[-100.364891,25.771474],[-100.364664,25.771358],[-100.364606,25.771252],[-100.364852,25.771095],[-100.364878,25.771163],[-100.365281,25.771359],[-100.365669,25.771508],[-100.365747,25.771532],[-100.365976,25.771591],[-100.366241,25.771661],[-100.366724,25.771876],[-100.366978,25.772097],[-100.367188,25.772142],[-100.367734,25.772276],[-100.367799,25.772288],[-100.368529,25.77248],[-100.370173,25.771407],[-100.370236,25.771547],[-100.370786,25.771198],[-100.371277,25.770892],[-100.371311,25.770868],[-100.371801,25.770551],[-100.372041,25.770417],[-100.372106,25.770404],[-100.372245,25.770398],[-100.372917,25.771843],[-100.373725,25.773623],[-100.374548,25.775374],[-100.374121,25.775531],[-100.373557,25.775752],[-100.372987,25.77597],[-100.372383,25.7762],[-100.370989,25.776768],[-100.370398,25.777017],[-100.369814,25.777267],[-100.369281,25.777511],[-100.368733,25.777751],[-100.3682,25.77801],[-100.368153,25.778088],[-100.367601,25.778356],[-100.367624,25.778388],[-100.368098,25.779071],[-100.368273,25.779299],[-100.368905,25.78016],[-100.368876,25.780202],[-100.368754,25.780263],[-100.368685,25.780331],[-100.36865,25.780415],[-100.368644,25.780443],[-100.368564,25.780555],[-100.368473,25.780657],[-100.368448,25.780678],[-100.368231,25.780804],[-100.367786,25.781074],[-100.367521,25.780747],[-100.366529,25.779444],[-100.36684,25.779244],[-100.367043,25.779105],[-100.367113,25.779055],[-100.36739,25.778882],[-100.367389,25.778817],[-100.367367,25.778761],[-100.367247,25.778619],[-100.366916,25.778256],[-100.366696,25.778067],[-100.366203,25.777388],[-100.365862,25.776904],[-100.365582,25.777028],[-100.365395,25.777015],[-100.365227,25.776926],[-100.364993,25.776654],[-100.364663,25.776234],[-100.364567,25.776102],[-100.364437,25.77611],[-100.363944,25.77636],[-100.363581,25.776542],[-100.36325,25.776241],[-100.363206,25.776191],[-100.363076,25.776292],[-100.362849,25.776279],[-100.362549,25.776288],[-100.362383,25.776381],[-100.362248,25.776464],[-100.362061,25.776593],[-100.361928,25.776685],[-100.361869,25.77686],[-100.361749,25.776757],[-100.361609,25.776713],[-100.361641,25.776616],[-100.361569,25.776413]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903900012519","OBJECTID":11,"CVEGEO_JOI":"1903900012519","CVE_MUN":"19039","NOM_MUN":"Monterrey","AGEB":"2519","POB_TOT":5642,"IM_2020":118.1673,"IMN_2_2021":0.9231,"IRS_CARTO":7.6921,"IM_NORM_10":90.45,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":9.8083,"SBASC":37.3896,"PSDSS":37.3468,"OVSDE":0.4434,"OVSEE":0.0,"OVSAE":1.7914,"OVPT":2.1107,"OVHAC":34.3029,"OVSREF":3.9198,"OVSINT":36.0057,"OSCEL":8.9276,"TOP1_IND":"Sin educ. básica (37.4%)","TOP1_CLAVE":"SBASC","TOP1_PCT":37.39,"TOP2_IND":"Sin servicio de salud (37.3%)","TOP3_IND":"Viv. sin internet (36.0%)","ETIQUETA_M":"AGEB 2519 | Monterrey | Grado: Alto","POPUP_HTML":"<b>AGEB 2519</b> — Monterrey<br><b>Grado:</b> Alto | <b>IM:</b> 118.17<br><b>Pob:</b> 5,642<br>������ Sin educ. básica (37.4%)<br>������ Sin servicio de salud (37.3%)<br>������ Viv. sin internet (36.0%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.360996,25.772878],[-100.36057,25.773073],[-100.359914,25.77337],[-100.359583,25.773558],[-100.359415,25.773213],[-100.359064,25.772898],[-100.358856,25.772682],[-100.358783,25.7727],[-100.358193,25.772631],[-100.358433,25.772423],[-100.358135,25.772469],[-100.357932,25.77223],[-100.358345,25.771782],[-100.358361,25.771605],[-100.358141,25.771506],[-100.357927,25.771329],[-100.3576,25.7712],[-100.358317,25.770728],[-100.358354,25.770524],[-100.358275,25.770355],[-100.35874,25.770101],[-100.358938,25.770488],[-100.35895,25.770512],[-100.359241,25.770825],[-100.359539,25.771084],[-100.359578,25.771096],[-100.359881,25.771308],[-100.359914,25.771346],[-100.360932,25.770177],[-100.361832,25.769125],[-100.362123,25.769432],[-100.362387,25.769687],[-100.362388,25.769748],[-100.362703,25.76938],[-100.362809,25.769291],[-100.362926,25.769312],[-100.363151,25.769291],[-100.363341,25.769151],[-100.363488,25.76903],[-100.36352,25.768976],[-100.36321,25.768709],[-100.363824,25.76808],[-100.363978,25.76798],[-100.363995,25.768139],[-100.365159,25.766912],[-100.365506,25.766542],[-100.365672,25.766687],[-100.366002,25.766966],[-100.366326,25.767242],[-100.366664,25.767531],[-100.367922,25.768646],[-100.367502,25.768982],[-100.366382,25.769879],[-100.366022,25.770167],[-100.365632,25.770479],[-100.365236,25.770791],[-100.364852,25.771095],[-100.364606,25.771252],[-100.364664,25.771358],[-100.364891,25.771474],[-100.365394,25.771706],[-100.363923,25.772409],[-100.363001,25.772837],[-100.361456,25.773568],[-100.361402,25.773594],[-100.3612,25.773224],[-100.360996,25.772878]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903900014341","OBJECTID":12,"CVEGEO_JOI":"1903900014341","CVE_MUN":"19039","NOM_MUN":"Monterrey","AGEB":"4341","POB_TOT":569,"IM_2020":111.5313,"IMN_2_2021":0.8712,"IRS_CARTO":12.876,"IM_NORM_10":68.88,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":17.0213,"SBASC":50.5181,"PSDSS":38.3392,"OVSDE":0.53,"OVSEE":0.1767,"OVSAE":37.2792,"OVPT":4.0636,"OVHAC":51.0601,"OVSREF":7.0671,"OVSINT":48.0565,"OSCEL":16.9611,"TOP1_IND":"Viv. hacinamiento (51.1%)","TOP1_CLAVE":"OVHAC","TOP1_PCT":51.06,"TOP2_IND":"Sin educ. básica (50.5%)","TOP3_IND":"Viv. sin internet (48.1%)","ETIQUETA_M":"AGEB 4341 | Monterrey | Grado: Muy alto","POPUP_HTML":"<b>AGEB 4341</b> — Monterrey<br><b>Grado:</b> Muy alto | <b>IM:</b> 111.53<br><b>Pob:</b> 569<br>������ Viv. hacinamiento (51.1%)<br>������ Sin educ. básica (50.5%)<br>������ Viv. sin internet (48.1%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.359583,25.773558],[-100.359914,25.77337],[-100.36057,25.773073],[-100.360996,25.772878],[-100.3612,25.773224],[-100.361402,25.773594],[-100.360453,25.774059],[-100.360638,25.774442],[-100.36094,25.774844],[-100.361368,25.774615],[-100.361566,25.774979],[-100.361772,25.775299],[-100.361992,25.775595],[-100.362223,25.775922],[-100.361692,25.776374],[-100.361569,25.776413],[-100.361215,25.7765],[-100.361145,25.776205],[-100.361115,25.776077],[-100.361092,25.775976],[-100.361197,25.775921],[-100.36098,25.775631],[-100.360738,25.775239],[-100.360624,25.775045],[-100.360616,25.775047],[-100.360501,25.775076],[-100.360104,25.774966],[-100.36,25.774725],[-100.360106,25.774399],[-100.360058,25.774303],[-100.359987,25.774161],[-100.359947,25.77408],[-100.359933,25.774052],[-100.359927,25.774042],[-100.359583,25.773558]]]]}},{"type":"Feature","properties":{"CVEGEO":"190460001120A","OBJECTID":13,"CVEGEO_JOI":"190460001120A","CVE_MUN":"19046","NOM_MUN":"San Nicolás de los Garza","AGEB":"120A","POB_TOT":3141,"IM_2020":118.4425,"IMN_2_2021":0.9252,"IRS_CARTO":7.4771,"IM_NORM_10":91.35,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":3,"P6A14NAE":12.933,"SBASC":37.1358,"PSDSS":28.7034,"OVSDE":0.0318,"OVSEE":0.0318,"OVSAE":0.0637,"OVPT":1.4963,"OVHAC":25.3422,"OVSREF":2.1338,"OVSINT":37.4403,"OSCEL":15.3454,"TOP1_IND":"Viv. sin internet (37.4%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":37.44,"TOP2_IND":"Sin educ. básica (37.1%)","TOP3_IND":"Sin servicio de salud (28.7%)","ETIQUETA_M":"AGEB 120A | San Nicolás de los Garza | Grado: Alto","POPUP_HTML":"<b>AGEB 120A</b> — San Nicolás de los Garza<br><b>Grado:</b> Alto | <b>IM:</b> 118.44<br><b>Pob:</b> 3,141<br>������ Viv. sin internet (37.4%)<br>������ Sin educ. básica (37.1%)<br>������ Sin servicio de salud (28.7%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.270001,25.724081],[-100.270482,25.723878],[-100.270938,25.723686],[-100.271421,25.723483],[-100.271857,25.723299],[-100.272333,25.723099],[-100.272782,25.722913],[-100.273739,25.722523],[-100.273747,25.722694],[-100.273743,25.723018],[-100.273744,25.723099],[-100.273748,25.723279],[-100.273752,25.723468],[-100.273771,25.723965],[-100.273779,25.724399],[-100.274686,25.724033],[-100.275798,25.723557],[-100.276128,25.723925],[-100.276453,25.724303],[-100.27676,25.724653],[-100.277094,25.725036],[-100.275557,25.725658],[-100.27476,25.725979],[-100.273871,25.726342],[-100.273877,25.726495],[-100.27359,25.726481],[-100.272892,25.726601],[-100.271716,25.726693],[-100.271282,25.726717],[-100.271169,25.726466],[-100.271157,25.726439],[-100.270972,25.726042],[-100.270778,25.725646],[-100.270596,25.72527],[-100.270402,25.724876],[-100.270204,25.724492],[-100.270001,25.724081]]]]}},{"type":"Feature","properties":{"CVEGEO":"190460001113A","OBJECTID":14,"CVEGEO_JOI":"190460001113A","CVE_MUN":"19046","NOM_MUN":"San Nicolás de los Garza","AGEB":"113A","POB_TOT":3513,"IM_2020":119.285,"IMN_2_2021":0.9318,"IRS_CARTO":6.819,"IM_NORM_10":94.09,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":3,"P6A14NAE":10.0656,"SBASC":39.7599,"PSDSS":23.123,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":1.4819,"OVHAC":24.2234,"OVSREF":2.932,"OVSINT":35.6675,"OSCEL":14.7452,"TOP1_IND":"Sin educ. básica (39.8%)","TOP1_CLAVE":"SBASC","TOP1_PCT":39.76,"TOP2_IND":"Viv. sin internet (35.7%)","TOP3_IND":"Viv. hacinamiento (24.2%)","ETIQUETA_M":"AGEB 113A | San Nicolás de los Garza | Grado: Medio","POPUP_HTML":"<b>AGEB 113A</b> — San Nicolás de los Garza<br><b>Grado:</b> Medio | <b>IM:</b> 119.29<br><b>Pob:</b> 3,513<br>������ Sin educ. básica (39.8%)<br>������ Viv. sin internet (35.7%)<br>������ Viv. hacinamiento (24.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.26616,25.72572],[-100.266145,25.72569],[-100.266167,25.725667],[-100.266584,25.725124],[-100.266962,25.724977],[-100.267389,25.724791],[-100.267609,25.724654],[-100.268458,25.724115],[-100.268861,25.724566],[-100.269082,25.724472],[-100.269541,25.724277],[-100.270001,25.724081],[-100.270204,25.724492],[-100.270402,25.724876],[-100.270596,25.72527],[-100.270778,25.725646],[-100.270972,25.726042],[-100.271157,25.726439],[-100.271169,25.726466],[-100.271282,25.726717],[-100.271716,25.726693],[-100.272892,25.726601],[-100.27359,25.726481],[-100.273877,25.726495],[-100.273882,25.726532],[-100.273892,25.726602],[-100.273478,25.726774],[-100.271709,25.727496],[-100.271079,25.727752],[-100.270614,25.727936],[-100.270169,25.72811],[-100.26967,25.728315],[-100.269219,25.728498],[-100.268733,25.728689],[-100.26825,25.728875],[-100.267785,25.729062],[-100.267279,25.729258],[-100.267154,25.728984],[-100.266838,25.728291],[-100.266449,25.727428],[-100.266419,25.727335],[-100.266379,25.727243],[-100.266298,25.727058],[-100.266178,25.726849],[-100.266157,25.726673],[-100.266142,25.726383],[-100.266148,25.726217],[-100.266163,25.725741],[-100.26616,25.72572]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904600011229","OBJECTID":15,"CVEGEO_JOI":"1904600011229","CVE_MUN":"19046","NOM_MUN":"San Nicolás de los Garza","AGEB":"1229","POB_TOT":3808,"IM_2020":121.0083,"IMN_2_2021":0.9453,"IRS_CARTO":5.4729,"IM_NORM_10":99.69,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":6.1441,"SBASC":34.2896,"PSDSS":17.225,"OVSDE":0.0,"OVSEE":0.079,"OVSAE":0.0,"OVPT":1.0008,"OVHAC":28.5225,"OVSREF":2.4493,"OVSINT":34.8696,"OSCEL":10.798,"TOP1_IND":"Viv. sin internet (34.9%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":34.87,"TOP2_IND":"Sin educ. básica (34.3%)","TOP3_IND":"Viv. hacinamiento (28.5%)","ETIQUETA_M":"AGEB 1229 | San Nicolás de los Garza | Grado: Medio","POPUP_HTML":"<b>AGEB 1229</b> — San Nicolás de los Garza<br><b>Grado:</b> Medio | <b>IM:</b> 121.01<br><b>Pob:</b> 3,808<br>������ Viv. sin internet (34.9%)<br>������ Sin educ. básica (34.3%)<br>������ Viv. hacinamiento (28.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.268669,25.717412],[-100.268584,25.717288],[-100.269546,25.716612],[-100.269683,25.716515],[-100.271055,25.715551],[-100.272183,25.714755],[-100.272254,25.714845],[-100.272368,25.714909],[-100.273007,25.715519],[-100.273017,25.715528],[-100.273232,25.715737],[-100.273457,25.715937],[-100.275161,25.717489],[-100.275495,25.717786],[-100.275802,25.718057],[-100.275927,25.718167],[-100.27605,25.718275],[-100.276353,25.718535],[-100.276594,25.718746],[-100.276955,25.719062],[-100.276997,25.719124],[-100.277065,25.719187],[-100.277342,25.720163],[-100.277382,25.720293],[-100.277638,25.721224],[-100.277718,25.721539],[-100.277672,25.721653],[-100.277595,25.721728],[-100.277263,25.72189],[-100.276892,25.722072],[-100.27663,25.722195],[-100.276446,25.722282],[-100.276029,25.722482],[-100.2755,25.722754],[-100.275397,25.722807],[-100.275203,25.722588],[-100.275069,25.722437],[-100.274064,25.721307],[-100.27374,25.72123],[-100.273688,25.721461],[-100.273722,25.721875],[-100.273722,25.721945],[-100.273729,25.72226],[-100.273739,25.722523],[-100.272782,25.722913],[-100.272333,25.723099],[-100.272086,25.722615],[-100.271869,25.722179],[-100.271396,25.722377],[-100.270934,25.72256],[-100.27045,25.722762],[-100.270207,25.7223],[-100.270156,25.72233],[-100.269943,25.721853],[-100.269817,25.721399],[-100.269667,25.720893],[-100.269534,25.720407],[-100.269388,25.719893],[-100.26924,25.719398],[-100.269107,25.7189],[-100.268956,25.718413],[-100.268815,25.717927],[-100.268669,25.717412]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904800010225","OBJECTID":16,"CVEGEO_JOI":"1904800010225","CVE_MUN":"19048","NOM_MUN":"Santa Catarina","AGEB":"0225","POB_TOT":3721,"IM_2020":120.4105,"IMN_2_2021":0.9406,"IRS_CARTO":5.9398,"IM_NORM_10":97.75,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":7.7263,"SBASC":34.2141,"PSDSS":21.3574,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0538,"OVPT":0.8071,"OVHAC":28.4907,"OVSREF":4.9233,"OVSINT":37.315,"OSCEL":9.2279,"TOP1_IND":"Viv. sin internet (37.3%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":37.32,"TOP2_IND":"Sin educ. básica (34.2%)","TOP3_IND":"Viv. hacinamiento (28.5%)","ETIQUETA_M":"AGEB 0225 | Santa Catarina | Grado: Medio","POPUP_HTML":"<b>AGEB 0225</b> — Santa Catarina<br><b>Grado:</b> Medio | <b>IM:</b> 120.41<br><b>Pob:</b> 3,721<br>������ Viv. sin internet (37.3%)<br>������ Sin educ. básica (34.2%)<br>������ Viv. hacinamiento (28.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.431906,25.682805],[-100.430095,25.682535],[-100.429294,25.682405],[-100.42804,25.682207],[-100.427004,25.682056],[-100.427082,25.681808],[-100.427189,25.681454],[-100.427267,25.681189],[-100.427288,25.681132],[-100.427354,25.680918],[-100.427435,25.680701],[-100.427565,25.680389],[-100.427636,25.680218],[-100.427724,25.679975],[-100.42797,25.679395],[-100.428023,25.679245],[-100.42802,25.679031],[-100.427986,25.67892],[-100.427912,25.678835],[-100.427775,25.678632],[-100.427729,25.67851],[-100.427694,25.67828],[-100.427684,25.678224],[-100.42775,25.678016],[-100.428015,25.677348],[-100.428312,25.676612],[-100.428656,25.675848],[-100.428677,25.675591],[-100.42868,25.675509],[-100.428711,25.674444],[-100.429116,25.674447],[-100.430305,25.674364],[-100.431048,25.674324],[-100.431607,25.674299],[-100.433424,25.67434],[-100.435024,25.6744],[-100.435356,25.674398],[-100.435751,25.674403],[-100.435996,25.674416],[-100.435922,25.674581],[-100.435939,25.674679],[-100.435971,25.674768],[-100.435907,25.674796],[-100.435536,25.675449],[-100.435528,25.675581],[-100.435531,25.675648],[-100.435258,25.676264],[-100.434803,25.677327],[-100.434674,25.677635],[-100.434425,25.678284],[-100.434324,25.67851],[-100.434231,25.6787],[-100.43404,25.679139],[-100.433299,25.680997],[-100.433068,25.681564],[-100.43314,25.681599],[-100.433437,25.681737],[-100.433309,25.68198],[-100.433211,25.682347],[-100.433116,25.682717],[-100.433057,25.682978],[-100.432644,25.682914],[-100.432252,25.682857],[-100.431906,25.682805]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904800010189","OBJECTID":17,"CVEGEO_JOI":"1904800010189","CVE_MUN":"19048","NOM_MUN":"Santa Catarina","AGEB":"0189","POB_TOT":3841,"IM_2020":118.5842,"IMN_2_2021":0.9263,"IRS_CARTO":7.3665,"IM_NORM_10":91.81,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":3,"P6A14NAE":10.4701,"SBASC":40.1,"PSDSS":32.2379,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0522,"OVPT":0.6539,"OVHAC":30.1749,"OVSREF":2.4614,"OVSINT":34.2991,"OSCEL":12.947,"TOP1_IND":"Sin educ. básica (40.1%)","TOP1_CLAVE":"SBASC","TOP1_PCT":40.1,"TOP2_IND":"Viv. sin internet (34.3%)","TOP3_IND":"Sin servicio de salud (32.2%)","ETIQUETA_M":"AGEB 0189 | Santa Catarina | Grado: Alto","POPUP_HTML":"<b>AGEB 0189</b> — Santa Catarina<br><b>Grado:</b> Alto | <b>IM:</b> 118.58<br><b>Pob:</b> 3,841<br>������ Sin educ. básica (40.1%)<br>������ Viv. sin internet (34.3%)<br>������ Sin servicio de salud (32.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.428085,25.688348],[-100.427737,25.688035],[-100.427625,25.687959],[-100.427583,25.687935],[-100.427377,25.68772],[-100.427023,25.687386],[-100.426819,25.68721],[-100.426659,25.687023],[-100.426452,25.68684],[-100.426122,25.686521],[-100.426013,25.686485],[-100.426041,25.686428],[-100.42623,25.686038],[-100.426256,25.685986],[-100.42644,25.685612],[-100.426469,25.685553],[-100.426662,25.685184],[-100.426704,25.685102],[-100.426882,25.684722],[-100.427064,25.68437],[-100.427265,25.683967],[-100.427463,25.683587],[-100.427687,25.683145],[-100.427687,25.683081],[-100.427681,25.683014],[-100.42771,25.682911],[-100.427771,25.682783],[-100.427873,25.682564],[-100.427911,25.682484],[-100.42804,25.682207],[-100.429294,25.682405],[-100.430095,25.682535],[-100.431906,25.682805],[-100.431891,25.682848],[-100.431745,25.683166],[-100.431698,25.683277],[-100.431592,25.683503],[-100.43156,25.683574],[-100.43135,25.683998],[-100.431179,25.684349],[-100.431031,25.684719],[-100.430849,25.685104],[-100.430803,25.685175],[-100.430695,25.685436],[-100.430646,25.685543],[-100.43054,25.685805],[-100.43039,25.686178],[-100.430284,25.686345],[-100.430214,25.686457],[-100.429987,25.686893],[-100.429773,25.687348],[-100.429713,25.687502],[-100.429595,25.687798],[-100.429568,25.687868],[-100.429408,25.688237],[-100.429155,25.688753],[-100.429109,25.688753],[-100.428748,25.688616],[-100.428522,25.688575],[-100.428085,25.688348]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904800011469","OBJECTID":18,"CVEGEO_JOI":"1904800011469","CVE_MUN":"19048","NOM_MUN":"Santa Catarina","AGEB":"1469","POB_TOT":83,"IM_2020":90.3493,"IMN_2_2021":0.7058,"IRS_CARTO":29.4225,"IM_NORM_10":0.0,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":0.0,"SBASC":55.2632,"PSDSS":32.9268,"OVSDE":0.0,"OVSEE":41.3793,"OVSAE":75.8621,"OVPT":51.7241,"OVHAC":25.8621,"OVSREF":48.2759,"OVSINT":82.7586,"OSCEL":34.4828,"TOP1_IND":"Viv. sin internet (82.8%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":82.76,"TOP2_IND":"Viv. sin agua (75.9%)","TOP3_IND":"Sin educ. básica (55.3%)","ETIQUETA_M":"AGEB 1469 | Santa Catarina | Grado: Muy alto","POPUP_HTML":"<b>AGEB 1469</b> — Santa Catarina<br><b>Grado:</b> Muy alto | <b>IM:</b> 90.35<br><b>Pob:</b> 83<br>������ Viv. sin internet (82.8%)<br>������ Viv. sin agua (75.9%)<br>������ Sin educ. básica (55.3%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.516286,25.702147],[-100.510587,25.701202],[-100.511318,25.698698],[-100.510572,25.698667],[-100.509932,25.698701],[-100.509238,25.698727],[-100.50889,25.698783],[-100.508384,25.698803],[-100.506943,25.698811],[-100.506287,25.698466],[-100.506247,25.698498],[-100.506042,25.698604],[-100.505763,25.698242],[-100.505206,25.698114],[-100.504385,25.69799],[-100.504004,25.697915],[-100.502248,25.697381],[-100.501877,25.697296],[-100.500863,25.697204],[-100.500261,25.697257],[-100.500124,25.697286],[-100.500014,25.697284],[-100.499628,25.697313],[-100.497755,25.69723],[-100.497684,25.69723],[-100.497678,25.697025],[-100.497558,25.697072],[-100.497219,25.697121],[-100.496865,25.697124],[-100.496512,25.697105],[-100.496246,25.697005],[-100.496053,25.696964],[-100.495841,25.696918],[-100.495386,25.696809],[-100.495044,25.696709],[-100.494811,25.696523],[-100.49497,25.695632],[-100.495462,25.695758],[-100.495664,25.695771],[-100.49622,25.695764],[-100.496746,25.695755],[-100.497305,25.695725],[-100.497786,25.695717],[-100.498091,25.69571],[-100.498256,25.695707],[-100.498685,25.695693],[-100.499055,25.695691],[-100.49951,25.695682],[-100.499916,25.695674],[-100.500445,25.695663],[-100.500921,25.695649],[-100.501341,25.695653],[-100.501592,25.695656],[-100.502026,25.695687],[-100.502394,25.695744],[-100.502594,25.69576],[-100.502984,25.695775],[-100.503396,25.695771],[-100.503564,25.695752],[-100.504355,25.695744],[-100.50449,25.695742],[-100.505011,25.693397],[-100.504072,25.69327],[-100.504034,25.693536],[-100.504007,25.693593],[-100.502925,25.693434],[-100.502386,25.693422],[-100.50205,25.693382],[-100.502054,25.693325],[-100.502127,25.693006],[-100.502136,25.692963],[-100.502423,25.69159],[-100.502429,25.691543],[-100.502436,25.691502],[-100.502657,25.690396],[-100.50267,25.690373],[-100.502688,25.690322],[-100.502737,25.690177],[-100.503902,25.690631],[-100.504569,25.690854],[-100.505243,25.691073],[-100.50556,25.691172],[-100.510972,25.69255],[-100.511785,25.692751],[-100.514555,25.693433],[-100.514729,25.69376],[-100.51479,25.693845],[-100.514883,25.694127],[-100.515095,25.694934],[-100.516149,25.699987],[-100.516361,25.701057],[-100.516404,25.701268],[-100.516556,25.701943],[-100.516599,25.702188],[-100.516286,25.702147]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904900010434","OBJECTID":19,"CVEGEO_JOI":"1904900010434","CVE_MUN":"19049","NOM_MUN":"Santiago","AGEB":"0434","POB_TOT":545,"IM_2020":120.1755,"IMN_2_2021":0.9388,"IRS_CARTO":6.1234,"IM_NORM_10":96.98,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":1.1111,"SBASC":33.4197,"PSDSS":18.3486,"OVSDE":1.4679,"OVSEE":0.0,"OVSAE":9.7248,"OVPT":7.5229,"OVHAC":37.9817,"OVSREF":4.2202,"OVSINT":51.3761,"OSCEL":1.8349,"TOP1_IND":"Viv. sin internet (51.4%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":51.38,"TOP2_IND":"Viv. hacinamiento (38.0%)","TOP3_IND":"Sin educ. básica (33.4%)","ETIQUETA_M":"AGEB 0434 | Santiago | Grado: Medio","POPUP_HTML":"<b>AGEB 0434</b> — Santiago<br><b>Grado:</b> Medio | <b>IM:</b> 120.18<br><b>Pob:</b> 545<br>������ Viv. sin internet (51.4%)<br>������ Viv. hacinamiento (38.0%)<br>������ Sin educ. básica (33.4%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.165056,25.488599],[-100.164949,25.488456],[-100.164883,25.488407],[-100.164809,25.488413],[-100.164688,25.488448],[-100.164599,25.488466],[-100.164455,25.488462],[-100.16438,25.488437],[-100.16434,25.488403],[-100.164341,25.488327],[-100.164515,25.488219],[-100.164482,25.488092],[-100.164452,25.488034],[-100.164282,25.487703],[-100.164281,25.487702],[-100.164467,25.487636],[-100.164469,25.487636],[-100.163843,25.486896],[-100.163616,25.486505],[-100.163571,25.486396],[-100.163533,25.486303],[-100.163175,25.485644],[-100.162862,25.485786],[-100.16286,25.485787],[-100.162751,25.485889],[-100.16275,25.485889],[-100.162635,25.485936],[-100.162023,25.484845],[-100.162023,25.484845],[-100.162627,25.484463],[-100.162825,25.484737],[-100.163123,25.484615],[-100.163125,25.484614],[-100.16245,25.483589],[-100.162296,25.48356],[-100.16215,25.483524],[-100.161998,25.483224],[-100.161835,25.483246],[-100.161218,25.483658],[-100.161186,25.483639],[-100.161165,25.483251],[-100.161119,25.482257],[-100.161108,25.481917],[-100.161079,25.481752],[-100.160998,25.481448],[-100.161026,25.481287],[-100.161026,25.481286],[-100.161329,25.481105],[-100.161687,25.48097],[-100.161891,25.480942],[-100.161893,25.480942],[-100.16214,25.481063],[-100.162382,25.481271],[-100.162429,25.481311],[-100.162872,25.481667],[-100.163053,25.481814],[-100.163165,25.481874],[-100.163294,25.481911],[-100.16346,25.481927],[-100.163692,25.481903],[-100.16388,25.481843],[-100.164061,25.481747],[-100.164394,25.481541],[-100.164905,25.482567],[-100.163121,25.483304],[-100.163675,25.484397],[-100.163835,25.484721],[-100.164018,25.485117],[-100.163827,25.485198],[-100.164243,25.486019],[-100.164777,25.48702],[-100.164501,25.487137],[-100.164664,25.487457],[-100.164869,25.487956],[-100.164911,25.488029],[-100.165189,25.488186],[-100.165329,25.488551],[-100.165422,25.48859],[-100.165563,25.488589],[-100.165732,25.488578],[-100.16591,25.488699],[-100.165363,25.488936],[-100.165056,25.488599]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904900010561","OBJECTID":20,"CVEGEO_JOI":"1904900010561","CVE_MUN":"19049","NOM_MUN":"Santiago","AGEB":"0561","POB_TOT":828,"IM_2020":117.1839,"IMN_2_2021":0.9154,"IRS_CARTO":8.4603,"IM_NORM_10":87.26,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":10.3448,"SBASC":55.6522,"PSDSS":22.3971,"OVSDE":0.86,"OVSEE":0.1229,"OVSAE":4.1769,"OVPT":3.5714,"OVHAC":45.3317,"OVSREF":5.5283,"OVSINT":44.226,"OSCEL":5.8968,"TOP1_IND":"Sin educ. básica (55.7%)","TOP1_CLAVE":"SBASC","TOP1_PCT":55.65,"TOP2_IND":"Viv. hacinamiento (45.3%)","TOP3_IND":"Viv. sin internet (44.2%)","ETIQUETA_M":"AGEB 0561 | Santiago | Grado: Alto","POPUP_HTML":"<b>AGEB 0561</b> — Santiago<br><b>Grado:</b> Alto | <b>IM:</b> 117.18<br><b>Pob:</b> 828<br>������ Sin educ. básica (55.7%)<br>������ Viv. hacinamiento (45.3%)<br>������ Viv. sin internet (44.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.149257,25.463832],[-100.149137,25.463821],[-100.149002,25.463827],[-100.148984,25.46356],[-100.148999,25.463519],[-100.148999,25.463517],[-100.149098,25.463535],[-100.149143,25.463536],[-100.14919,25.463506],[-100.14932,25.463588],[-100.149432,25.46369],[-100.149585,25.463691],[-100.14982,25.463595],[-100.149822,25.463594],[-100.149492,25.463448],[-100.149633,25.463236],[-100.149633,25.463235],[-100.149852,25.46316],[-100.149852,25.46316],[-100.150081,25.462936],[-100.150333,25.462533],[-100.150334,25.462532],[-100.151002,25.462619],[-100.151003,25.462619],[-100.15106,25.462544],[-100.151097,25.462442],[-100.151252,25.462013],[-100.151307,25.461902],[-100.151443,25.461675],[-100.151655,25.461454],[-100.151656,25.461452],[-100.152376,25.461176],[-100.15257,25.461118],[-100.152572,25.461117],[-100.152826,25.461278],[-100.152956,25.461354],[-100.152937,25.46141],[-100.152569,25.462054],[-100.152162,25.462584],[-100.151879,25.462752],[-100.151195,25.463096],[-100.150917,25.463245],[-100.150917,25.463246],[-100.150905,25.463379],[-100.150903,25.46338],[-100.150553,25.463648],[-100.150224,25.463781],[-100.150085,25.463709],[-100.150084,25.463711],[-100.150031,25.463778],[-100.15003,25.463779],[-100.149669,25.463911],[-100.149562,25.463914],[-100.149424,25.463902],[-100.149257,25.463832]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904900010275","OBJECTID":21,"CVEGEO_JOI":"1904900010275","CVE_MUN":"19049","NOM_MUN":"Santiago","AGEB":"0275","POB_TOT":362,"IM_2020":116.8657,"IMN_2_2021":0.9129,"IRS_CARTO":8.7089,"IM_NORM_10":86.22,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":0.0,"SBASC":54.1502,"PSDSS":33.5196,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":8.5635,"OVPT":12.1547,"OVHAC":56.9061,"OVSREF":4.6961,"OVSINT":61.8785,"OSCEL":6.3536,"TOP1_IND":"Viv. sin internet (61.9%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":61.88,"TOP2_IND":"Viv. hacinamiento (56.9%)","TOP3_IND":"Sin educ. básica (54.2%)","ETIQUETA_M":"AGEB 0275 | Santiago | Grado: Alto","POPUP_HTML":"<b>AGEB 0275</b> — Santiago<br><b>Grado:</b> Alto | <b>IM:</b> 116.87<br><b>Pob:</b> 362<br>������ Viv. sin internet (61.9%)<br>������ Viv. hacinamiento (56.9%)<br>������ Sin educ. básica (54.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.157609,25.455106],[-100.15747,25.455072],[-100.157241,25.455084],[-100.156961,25.455096],[-100.156661,25.45511],[-100.156397,25.455127],[-100.155126,25.455202],[-100.154149,25.455269],[-100.153692,25.455237],[-100.153409,25.455183],[-100.153098,25.455056],[-100.15268,25.45477],[-100.15237,25.454396],[-100.152201,25.454054],[-100.151663,25.452393],[-100.151481,25.452528],[-100.151205,25.452719],[-100.150795,25.452886],[-100.150701,25.452887],[-100.150627,25.452863],[-100.150079,25.452314],[-100.149859,25.452111],[-100.149759,25.452089],[-100.149593,25.452072],[-100.14945,25.451621],[-100.149437,25.451571],[-100.149417,25.451491],[-100.14918,25.451482],[-100.148932,25.451433],[-100.148645,25.451022],[-100.148586,25.450898],[-100.148532,25.450494],[-100.147947,25.450602],[-100.147224,25.451011],[-100.146843,25.450467],[-100.146842,25.450467],[-100.148653,25.449314],[-100.148657,25.449371],[-100.148657,25.449372],[-100.149095,25.448811],[-100.14883,25.448791],[-100.147496,25.448693],[-100.14726,25.448664],[-100.14713,25.448599],[-100.146757,25.448254],[-100.146364,25.447728],[-100.146107,25.447316],[-100.145799,25.446709],[-100.145577,25.446305],[-100.145185,25.445991],[-100.144975,25.445774],[-100.144898,25.445731],[-100.144602,25.445716],[-100.144525,25.445705],[-100.14424,25.445434],[-100.144169,25.445171],[-100.144147,25.445136],[-100.143981,25.445168],[-100.143963,25.445106],[-100.144258,25.4448],[-100.144275,25.44471],[-100.144292,25.444385],[-100.144161,25.44377],[-100.144068,25.443568],[-100.14386,25.443071],[-100.143585,25.442434],[-100.143194,25.441877],[-100.142777,25.44135],[-100.14224,25.440755],[-100.14174,25.440181],[-100.141256,25.439558],[-100.141207,25.439479],[-100.141092,25.439305],[-100.141143,25.43898],[-100.141188,25.438454],[-100.141137,25.438269],[-100.141069,25.438192],[-100.140945,25.438059],[-100.140722,25.43779],[-100.140575,25.437586],[-100.139464,25.435562],[-100.139445,25.43541],[-100.139446,25.435323],[-100.139469,25.435247],[-100.13948,25.435133],[-100.139476,25.435036],[-100.139487,25.434838],[-100.139477,25.434674],[-100.13915,25.43433],[-100.138984,25.434224],[-100.138593,25.434047],[-100.138592,25.434046],[-100.138214,25.433631],[-100.13821,25.433623],[-100.138195,25.433594],[-100.138153,25.433509],[-100.138153,25.433509],[-100.138152,25.433507],[-100.138061,25.433378],[-100.138001,25.433293],[-100.138,25.433291],[-100.137681,25.432912],[-100.137335,25.432796],[-100.137332,25.432793],[-100.136192,25.431606],[-100.135759,25.431213],[-100.135599,25.431082],[-100.135523,25.431064],[-100.135418,25.431082],[-100.135294,25.431068],[-100.134829,25.430922],[-100.134748,25.430829],[-100.134697,25.430715],[-100.134649,25.430593],[-100.134632,25.430279],[-100.13451,25.429935],[-100.13451,25.429934],[-100.135051,25.429648],[-100.135096,25.429616],[-100.135098,25.429615],[-100.135111,25.429563],[-100.135095,25.429482],[-100.134967,25.429248],[-100.134839,25.429066],[-100.134581,25.428557],[-100.134468,25.428248],[-100.134353,25.428153],[-100.134284,25.42812],[-100.13423,25.428108],[-100.134143,25.428108],[-100.133583,25.42842],[-100.133388,25.4285],[-100.133175,25.428546],[-100.133002,25.428547],[-100.132908,25.42851],[-100.132866,25.428455],[-100.132871,25.42835],[-100.133082,25.427808],[-100.133084,25.427582],[-100.133065,25.427476],[-100.133017,25.42735],[-100.132962,25.42727],[-100.132876,25.427199],[-100.132676,25.427127],[-100.132528,25.427116],[-100.132401,25.427136],[-100.13217,25.42723],[-100.132071,25.427309],[-100.13203,25.427332],[-100.131996,25.427333],[-100.131945,25.427321],[-100.131552,25.42708],[-100.131398,25.427013],[-100.13111,25.42692],[-100.130885,25.426927],[-100.130449,25.427014],[-100.130403,25.426968],[-100.130182,25.427067],[-100.129903,25.427266],[-100.129903,25.427267],[-100.129727,25.427464],[-100.129522,25.427877],[-100.129402,25.428284],[-100.129401,25.428283],[-100.129266,25.428242],[-100.129248,25.428166],[-100.129197,25.4281],[-100.129192,25.428064],[-100.129326,25.427694],[-100.129566,25.427321],[-100.129694,25.427213],[-100.130094,25.42693],[-100.130685,25.426672],[-100.131117,25.426509],[-100.131623,25.426503],[-100.131763,25.426569],[-100.131883,25.426594],[-100.131951,25.426551],[-100.132113,25.426462],[-100.132567,25.426319],[-100.133047,25.426249],[-100.133212,25.426241],[-100.133308,25.426292],[-100.13359,25.426698],[-100.133691,25.426872],[-100.133715,25.426927],[-100.13374,25.426961],[-100.13377,25.426985],[-100.133824,25.42698],[-100.133847,25.426957],[-100.133861,25.426884],[-100.133918,25.426778],[-100.134008,25.426656],[-100.134109,25.426541],[-100.134209,25.426535],[-100.134338,25.426594],[-100.134644,25.426858],[-100.134915,25.427194],[-100.135636,25.428212],[-100.135839,25.428389],[-100.136433,25.428801],[-100.136665,25.42903],[-100.136723,25.429109],[-100.136745,25.429211],[-100.136745,25.42929],[-100.136725,25.429364],[-100.136595,25.429463],[-100.136412,25.429554],[-100.136196,25.429831],[-100.136081,25.430062],[-100.135981,25.430201],[-100.135744,25.430355],[-100.135632,25.430367],[-100.135493,25.430504],[-100.135465,25.43054],[-100.135466,25.430577],[-100.135476,25.430601],[-100.1356,25.430582],[-100.135628,25.430567],[-100.135697,25.430557],[-100.135756,25.430566],[-100.135803,25.430582],[-100.135878,25.430626],[-100.136645,25.430453],[-100.136765,25.430364],[-100.137098,25.430609],[-100.13707,25.430723],[-100.137535,25.43113],[-100.137697,25.43114],[-100.137931,25.431255],[-100.138111,25.431277],[-100.138199,25.43126],[-100.13839,25.431386],[-100.138531,25.431333],[-100.138856,25.431624],[-100.138775,25.43173],[-100.139284,25.432391],[-100.139439,25.432694],[-100.140082,25.433189],[-100.140442,25.433517],[-100.140481,25.433592],[-100.140353,25.433689],[-100.140987,25.4345],[-100.141067,25.434531],[-100.14119,25.434726],[-100.141108,25.434798],[-100.141078,25.434996],[-100.141082,25.435091],[-100.141138,25.43522],[-100.141529,25.435843],[-100.141866,25.436285],[-100.141975,25.436423],[-100.142384,25.436692],[-100.142545,25.436791],[-100.142695,25.436873],[-100.142882,25.436953],[-100.142922,25.43699],[-100.142948,25.437045],[-100.143002,25.437277],[-100.142991,25.437474],[-100.142985,25.43765],[-100.142804,25.437917],[-100.142749,25.437933],[-100.142642,25.438052],[-100.142599,25.438103],[-100.142548,25.438198],[-100.142562,25.438291],[-100.142545,25.43836],[-100.142592,25.438386],[-100.142696,25.438373],[-100.142676,25.438209],[-100.142746,25.438155],[-100.143101,25.437604],[-100.143146,25.437408],[-100.143139,25.437105],[-100.14315,25.437048],[-100.143169,25.437008],[-100.143239,25.436986],[-100.143412,25.437038],[-100.143589,25.437116],[-100.143664,25.437202],[-100.143838,25.43741],[-100.144112,25.437924],[-100.144159,25.437982],[-100.144282,25.438043],[-100.144429,25.438196],[-100.14447,25.438341],[-100.14445,25.438619],[-100.144421,25.438792],[-100.144441,25.438925],[-100.144406,25.439029],[-100.14453,25.439453],[-100.144612,25.439593],[-100.144537,25.440041],[-100.144416,25.440275],[-100.144384,25.440323],[-100.144249,25.440397],[-100.14418,25.4404],[-100.144161,25.440427],[-100.144159,25.440473],[-100.144181,25.440505],[-100.144212,25.440535],[-100.14427,25.440519],[-100.144348,25.440556],[-100.144364,25.44061],[-100.144314,25.440715],[-100.144316,25.4408],[-100.144325,25.440855],[-100.144381,25.440898],[-100.14444,25.440988],[-100.144672,25.440963],[-100.144694,25.441011],[-100.144696,25.441092],[-100.144604,25.441539],[-100.144615,25.441649],[-100.144666,25.441739],[-100.144703,25.44179],[-100.144776,25.441844],[-100.144875,25.441896],[-100.144956,25.441935],[-100.145083,25.441942],[-100.145161,25.441948],[-100.145205,25.441986],[-100.145237,25.442016],[-100.145316,25.442104],[-100.145295,25.442164],[-100.145211,25.442238],[-100.145137,25.44229],[-100.144962,25.44237],[-100.144911,25.442406],[-100.144903,25.44268],[-100.144746,25.44274],[-100.144508,25.442761],[-100.144456,25.442796],[-100.144474,25.442863],[-100.14458,25.442879],[-100.144765,25.442843],[-100.144844,25.442862],[-100.144932,25.443214],[-100.14486,25.443319],[-100.144833,25.443366],[-100.144831,25.443414],[-100.144885,25.443597],[-100.144952,25.443785],[-100.145039,25.443991],[-100.145,25.444031],[-100.145168,25.444151],[-100.145261,25.444202],[-100.145376,25.444205],[-100.145447,25.444196],[-100.145504,25.44413],[-100.145556,25.444096],[-100.14566,25.444122],[-100.145751,25.444177],[-100.145861,25.444204],[-100.14596,25.444196],[-100.14606,25.444106],[-100.146151,25.443954],[-100.146157,25.443806],[-100.146234,25.443607],[-100.146299,25.443426],[-100.146381,25.443115],[-100.1469,25.442932],[-100.146966,25.443123],[-100.147096,25.443106],[-100.147338,25.443021],[-100.147499,25.442885],[-100.147522,25.442699],[-100.147538,25.442602],[-100.147744,25.442479],[-100.147993,25.442304],[-100.148318,25.442072],[-100.147843,25.441833],[-100.14773,25.441753],[-100.147679,25.441653],[-100.147612,25.441587],[-100.147531,25.441531],[-100.147476,25.441451],[-100.147473,25.441388],[-100.147493,25.441326],[-100.147724,25.441089],[-100.14784,25.441018],[-100.147997,25.440967],[-100.148169,25.440947],[-100.148322,25.440955],[-100.148419,25.440969],[-100.148473,25.441012],[-100.148526,25.44107],[-100.148576,25.441129],[-100.148628,25.441143],[-100.14871,25.441132],[-100.148723,25.441092],[-100.148748,25.441049],[-100.148838,25.440747],[-100.148954,25.440759],[-100.149103,25.440769],[-100.149252,25.44078],[-100.149399,25.440798],[-100.149548,25.440809],[-100.149697,25.440815],[-100.149846,25.440819],[-100.149995,25.440817],[-100.150145,25.440816],[-100.150294,25.440815],[-100.150443,25.440814],[-100.150591,25.440808],[-100.150741,25.440805],[-100.15089,25.440805],[-100.151038,25.440822],[-100.151186,25.44084],[-100.151324,25.440892],[-100.151479,25.441],[-100.151682,25.441103],[-100.151868,25.441168],[-100.152183,25.441254],[-100.152655,25.441329],[-100.153192,25.441357],[-100.153439,25.441348],[-100.1537,25.441308],[-100.153897,25.441167],[-100.154199,25.4407],[-100.154339,25.440646],[-100.154957,25.441457],[-100.155189,25.441793],[-100.155881,25.442806],[-100.156148,25.443236],[-100.156733,25.444057],[-100.15755,25.445099],[-100.15811,25.445814],[-100.160075,25.448233],[-100.161504,25.449999],[-100.16238,25.451028],[-100.160362,25.452515],[-100.159563,25.453102],[-100.159348,25.453267],[-100.159246,25.453398],[-100.159197,25.453527],[-100.159175,25.453653],[-100.159198,25.453805],[-100.159238,25.453898],[-100.159317,25.454014],[-100.15955,25.454282],[-100.160206,25.455],[-100.160304,25.455154],[-100.160333,25.455214],[-100.16036,25.455314],[-100.160345,25.455405],[-100.160317,25.455454],[-100.160266,25.455492],[-100.160164,25.455586],[-100.159905,25.455759],[-100.159765,25.455875],[-100.159679,25.455928],[-100.15958,25.455962],[-100.159409,25.455974],[-100.159279,25.455944],[-100.158956,25.455782],[-100.158623,25.455612],[-100.158355,25.455465],[-100.157766,25.455156],[-100.157609,25.455106]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901001310162","OBJECTID":22,"CVEGEO_JOI":"1901001310162","CVE_MUN":"19010","NOM_MUN":"El Carmen","AGEB":"0162","POB_TOT":795,"IM_2020":119.5571,"IMN_2_2021":0.9339,"IRS_CARTO":6.6065,"IM_NORM_10":94.97,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":3.2086,"SBASC":35.9316,"PSDSS":39.4969,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.5031,"OVHAC":38.4906,"OVSREF":5.283,"OVSINT":52.2013,"OSCEL":5.5346,"TOP1_IND":"Viv. sin internet (52.2%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":52.2,"TOP2_IND":"Sin servicio de salud (39.5%)","TOP3_IND":"Viv. hacinamiento (38.5%)","ETIQUETA_M":"AGEB 0162 | El Carmen | Grado: Medio","POPUP_HTML":"<b>AGEB 0162</b> — El Carmen<br><b>Grado:</b> Medio | <b>IM:</b> 119.56<br><b>Pob:</b> 795<br>������ Viv. sin internet (52.2%)<br>������ Sin servicio de salud (39.5%)<br>������ Viv. hacinamiento (38.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.379669,25.849407],[-100.379636,25.848616],[-100.379592,25.848522],[-100.379591,25.84852],[-100.380471,25.848774],[-100.381183,25.848979],[-100.381674,25.84912],[-100.381985,25.84921],[-100.382514,25.849363],[-100.382617,25.849392],[-100.383136,25.849542],[-100.384952,25.850065],[-100.385133,25.850118],[-100.387675,25.85085],[-100.388956,25.851219],[-100.389038,25.851243],[-100.389349,25.851332],[-100.389557,25.851392],[-100.389555,25.851394],[-100.385986,25.853534],[-100.385949,25.853557],[-100.385563,25.853765],[-100.384085,25.854665],[-100.383852,25.854342],[-100.383794,25.854261],[-100.383585,25.853976],[-100.383582,25.853923],[-100.383569,25.853878],[-100.383385,25.853641],[-100.383354,25.853601],[-100.383227,25.853429],[-100.383122,25.853287],[-100.383097,25.853252],[-100.38289,25.852975],[-100.382664,25.852661],[-100.382429,25.852337],[-100.3822,25.852033],[-100.381953,25.8517],[-100.381718,25.851382],[-100.381487,25.85106],[-100.381261,25.850749],[-100.381027,25.850446],[-100.380903,25.850266],[-100.380939,25.850244],[-100.381476,25.849935],[-100.381293,25.849882],[-100.381282,25.849855],[-100.380771,25.849698],[-100.379669,25.849407]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901001310158","OBJECTID":23,"CVEGEO_JOI":"1901001310158","CVE_MUN":"19010","NOM_MUN":"El Carmen","AGEB":"0158","POB_TOT":3103,"IM_2020":121.1033,"IMN_2_2021":0.946,"IRS_CARTO":5.3987,"IM_NORM_10":100.0,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":4.1096,"SBASC":28.1669,"PSDSS":30.804,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.1289,"OVPT":0.0,"OVHAC":26.2005,"OVSREF":3.7061,"OVSINT":47.5991,"OSCEL":5.6075,"TOP1_IND":"Viv. sin internet (47.6%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":47.6,"TOP2_IND":"Sin servicio de salud (30.8%)","TOP3_IND":"Sin educ. básica (28.2%)","ETIQUETA_M":"AGEB 0158 | El Carmen | Grado: Medio","POPUP_HTML":"<b>AGEB 0158</b> — El Carmen<br><b>Grado:</b> Medio | <b>IM:</b> 121.10<br><b>Pob:</b> 3,103<br>������ Viv. sin internet (47.6%)<br>������ Sin servicio de salud (30.8%)<br>������ Sin educ. básica (28.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.383952,25.85803],[-100.38304,25.85679],[-100.382913,25.856616],[-100.382575,25.856153],[-100.38291,25.855958],[-100.383252,25.855748],[-100.383623,25.855522],[-100.383817,25.855403],[-100.383982,25.855301],[-100.384138,25.855207],[-100.384363,25.855072],[-100.384753,25.854833],[-100.385103,25.854613],[-100.38546,25.854394],[-100.385838,25.854151],[-100.385953,25.854325],[-100.386408,25.854934],[-100.386886,25.855581],[-100.38749,25.856395],[-100.387993,25.857106],[-100.388132,25.857217],[-100.388917,25.858211],[-100.387698,25.858999],[-100.386885,25.857977],[-100.386629,25.858133],[-100.386262,25.858369],[-100.385883,25.858627],[-100.385519,25.858836],[-100.385199,25.859067],[-100.384881,25.859283],[-100.384767,25.859146],[-100.383952,25.85803]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901001310177","OBJECTID":24,"CVEGEO_JOI":"1901001310177","CVE_MUN":"19010","NOM_MUN":"El Carmen","AGEB":"0177","POB_TOT":3253,"IM_2020":120.5726,"IMN_2_2021":0.9419,"IRS_CARTO":5.8132,"IM_NORM_10":98.27,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":4.7463,"SBASC":30.0172,"PSDSS":28.9538,"OVSDE":0.0,"OVSEE":0.0307,"OVSAE":0.4305,"OVPT":0.2768,"OVHAC":39.1759,"OVSREF":2.46,"OVSINT":45.2952,"OSCEL":6.6421,"TOP1_IND":"Viv. sin internet (45.3%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":45.3,"TOP2_IND":"Viv. hacinamiento (39.2%)","TOP3_IND":"Sin educ. básica (30.0%)","ETIQUETA_M":"AGEB 0177 | El Carmen | Grado: Medio","POPUP_HTML":"<b>AGEB 0177</b> — El Carmen<br><b>Grado:</b> Medio | <b>IM:</b> 120.57<br><b>Pob:</b> 3,253<br>������ Viv. sin internet (45.3%)<br>������ Viv. hacinamiento (39.2%)<br>������ Sin educ. básica (30.0%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.385838,25.854151],[-100.385585,25.853796],[-100.385563,25.853765],[-100.385949,25.853557],[-100.385986,25.853534],[-100.389555,25.851394],[-100.389557,25.851392],[-100.390191,25.851575],[-100.392021,25.852103],[-100.392021,25.852103],[-100.393325,25.852478],[-100.393325,25.852478],[-100.393673,25.852578],[-100.394577,25.852839],[-100.394581,25.85284],[-100.39458,25.852841],[-100.393996,25.853217],[-100.393819,25.853332],[-100.393682,25.853422],[-100.39334,25.853644],[-100.392997,25.853867],[-100.392654,25.854091],[-100.392315,25.854311],[-100.392024,25.854501],[-100.39197,25.854536],[-100.390385,25.855557],[-100.39015,25.855709],[-100.388376,25.85686],[-100.388032,25.85708],[-100.387993,25.857106],[-100.38749,25.856395],[-100.386886,25.855581],[-100.386408,25.854934],[-100.385953,25.854325],[-100.385838,25.854151]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901001310181","OBJECTID":25,"CVEGEO_JOI":"1901001310181","CVE_MUN":"19010","NOM_MUN":"El Carmen","AGEB":"0181","POB_TOT":2381,"IM_2020":120.2686,"IMN_2_2021":0.9395,"IRS_CARTO":6.0506,"IM_NORM_10":97.29,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":10.8312,"SBASC":19.7394,"PSDSS":29.5082,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.0,"OVHAC":23.5591,"OVSREF":6.0211,"OVSINT":77.703,"OSCEL":3.5339,"TOP1_IND":"Viv. sin internet (77.7%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":77.7,"TOP2_IND":"Sin servicio de salud (29.5%)","TOP3_IND":"Viv. hacinamiento (23.6%)","ETIQUETA_M":"AGEB 0181 | El Carmen | Grado: Medio","POPUP_HTML":"<b>AGEB 0181</b> — El Carmen<br><b>Grado:</b> Medio | <b>IM:</b> 120.27<br><b>Pob:</b> 2,381<br>������ Viv. sin internet (77.7%)<br>������ Sin servicio de salud (29.5%)<br>������ Viv. hacinamiento (23.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.380048,25.858515],[-100.379986,25.857136],[-100.379986,25.857136],[-100.379986,25.857136],[-100.379959,25.85656],[-100.379954,25.856409],[-100.379907,25.855552],[-100.379907,25.855552],[-100.379907,25.855552],[-100.379907,25.855552],[-100.379832,25.853305],[-100.37978,25.852256],[-100.379716,25.850457],[-100.379669,25.849407],[-100.380771,25.849698],[-100.381282,25.849855],[-100.381293,25.849882],[-100.381476,25.849935],[-100.380939,25.850244],[-100.380903,25.850266],[-100.381027,25.850446],[-100.381261,25.850749],[-100.381487,25.85106],[-100.381718,25.851382],[-100.381953,25.8517],[-100.3822,25.852033],[-100.382429,25.852337],[-100.382664,25.852661],[-100.38289,25.852975],[-100.383097,25.853252],[-100.383122,25.853287],[-100.383227,25.853429],[-100.383354,25.853601],[-100.383385,25.853641],[-100.383569,25.853878],[-100.383582,25.853923],[-100.383585,25.853976],[-100.383794,25.854261],[-100.383852,25.854342],[-100.384085,25.854665],[-100.385563,25.853765],[-100.385585,25.853796],[-100.385838,25.854151],[-100.38546,25.854394],[-100.385103,25.854613],[-100.384753,25.854833],[-100.384363,25.855072],[-100.384138,25.855207],[-100.383982,25.855301],[-100.383817,25.855403],[-100.383623,25.855522],[-100.383252,25.855748],[-100.38291,25.855958],[-100.382575,25.856153],[-100.382913,25.856616],[-100.38304,25.85679],[-100.383952,25.85803],[-100.384767,25.859146],[-100.384881,25.859283],[-100.384881,25.859283],[-100.384758,25.859269],[-100.384557,25.859246],[-100.383631,25.859089],[-100.382289,25.858882],[-100.381051,25.858684],[-100.380177,25.858538],[-100.380048,25.858515]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902100010607","OBJECTID":26,"CVEGEO_JOI":"1902100010607","CVE_MUN":"19021","NOM_MUN":"General Escobedo","AGEB":"0607","POB_TOT":231,"IM_2020":113.9924,"IMN_2_2021":0.8905,"IRS_CARTO":10.9534,"IM_NORM_10":76.88,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":0.0,"SBASC":50.6024,"PSDSS":33.3333,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":17.316,"OVPT":28.5714,"OVHAC":32.9004,"OVSREF":24.6753,"OVSINT":90.4762,"OSCEL":7.7922,"TOP1_IND":"Viv. sin internet (90.5%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":90.48,"TOP2_IND":"Sin educ. básica (50.6%)","TOP3_IND":"Sin servicio de salud (33.3%)","ETIQUETA_M":"AGEB 0607 | General Escobedo | Grado: Muy alto","POPUP_HTML":"<b>AGEB 0607</b> — General Escobedo<br><b>Grado:</b> Muy alto | <b>IM:</b> 113.99<br><b>Pob:</b> 231<br>������ Viv. sin internet (90.5%)<br>������ Sin educ. básica (50.6%)<br>������ Sin servicio de salud (33.3%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.356411,25.810965],[-100.356516,25.810869],[-100.356639,25.810791],[-100.35678,25.810745],[-100.356927,25.810722],[-100.357076,25.810713],[-100.357226,25.810723],[-100.357373,25.810743],[-100.357518,25.810779],[-100.357663,25.810813],[-100.357812,25.81082],[-100.357961,25.810828],[-100.358111,25.810828],[-100.358261,25.810831],[-100.35841,25.81084],[-100.358557,25.810863],[-100.358706,25.810875],[-100.358856,25.810881],[-100.359004,25.810898],[-100.359154,25.810903],[-100.359303,25.810908],[-100.359453,25.81091],[-100.359603,25.810908],[-100.359752,25.810905],[-100.35983,25.810908],[-100.359902,25.810901],[-100.360051,25.810896],[-100.3602,25.810883],[-100.360346,25.810852],[-100.360495,25.810845],[-100.360644,25.810857],[-100.360793,25.810868],[-100.360943,25.81087],[-100.361092,25.810861],[-100.36124,25.810837],[-100.361386,25.81081],[-100.361533,25.810783],[-100.361682,25.81078],[-100.361832,25.810777],[-100.361981,25.81077],[-100.362131,25.810763],[-100.36228,25.810753],[-100.362425,25.810719],[-100.362572,25.810694],[-100.36272,25.810676],[-100.362868,25.810657],[-100.363015,25.810633],[-100.363151,25.81062],[-100.363205,25.810603],[-100.363313,25.810604],[-100.363462,25.810592],[-100.363611,25.810577],[-100.36376,25.810571],[-100.363909,25.810556],[-100.364056,25.810532],[-100.364201,25.810498],[-100.364346,25.810465],[-100.364493,25.810438],[-100.364628,25.81038],[-100.364762,25.81032],[-100.364901,25.810269],[-100.365037,25.810214],[-100.36518,25.810174],[-100.365311,25.810108],[-100.365421,25.810017],[-100.365538,25.809932],[-100.365665,25.80986],[-100.365804,25.809811],[-100.365942,25.809758],[-100.366091,25.809763],[-100.366241,25.809772],[-100.366388,25.809796],[-100.366532,25.80983],[-100.366675,25.809871],[-100.36682,25.809906],[-100.36696,25.809952],[-100.367094,25.810013],[-100.367243,25.810023],[-100.367391,25.810047],[-100.367538,25.810071],[-100.367803,25.81022],[-100.368226,25.810379],[-100.369311,25.810743],[-100.369625,25.810772],[-100.37036,25.810848],[-100.371167,25.810794],[-100.371221,25.811486],[-100.371099,25.811521],[-100.370868,25.811563],[-100.370472,25.811595],[-100.370334,25.81159],[-100.3702,25.811569],[-100.370007,25.811533],[-100.36959,25.811458],[-100.369383,25.811423],[-100.369155,25.811362],[-100.368862,25.811288],[-100.368675,25.811211],[-100.367967,25.810927],[-100.368047,25.813351],[-100.368045,25.813462],[-100.368054,25.813581],[-100.368081,25.813805],[-100.368111,25.814378],[-100.368118,25.814541],[-100.363487,25.815255],[-100.36073,25.815668],[-100.358054,25.816072],[-100.35803,25.816076],[-100.358028,25.816076],[-100.358025,25.816076],[-100.355479,25.816468],[-100.353559,25.816784],[-100.353151,25.816852],[-100.352825,25.816903],[-100.352824,25.816898],[-100.352823,25.816877],[-100.352742,25.815593],[-100.352736,25.815522],[-100.352677,25.814795],[-100.352753,25.814745],[-100.352838,25.814721],[-100.352371,25.814225],[-100.352289,25.814138],[-100.352376,25.814074],[-100.352484,25.81398],[-100.352601,25.813896],[-100.352716,25.813809],[-100.35283,25.813722],[-100.352953,25.813644],[-100.353077,25.813569],[-100.353192,25.813482],[-100.353309,25.813397],[-100.353416,25.813303],[-100.353536,25.813222],[-100.353662,25.813149],[-100.353793,25.813084],[-100.353929,25.813028],[-100.354058,25.812958],[-100.354176,25.812888],[-100.354307,25.812809],[-100.35443,25.812732],[-100.354554,25.812656],[-100.354676,25.812577],[-100.354809,25.812515],[-100.354935,25.812443],[-100.355065,25.812376],[-100.355193,25.812304],[-100.355313,25.812225],[-100.35544,25.812153],[-100.355556,25.812067],[-100.355659,25.811969],[-100.355756,25.811865],[-100.355789,25.811811],[-100.355828,25.811747],[-100.355923,25.811642],[-100.356006,25.811529],[-100.356082,25.811413],[-100.356139,25.811287],[-100.356224,25.811176],[-100.356312,25.811067],[-100.356411,25.810965]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902100010382","OBJECTID":27,"CVEGEO_JOI":"1902100010382","CVE_MUN":"19021","NOM_MUN":"General Escobedo","AGEB":"0382","POB_TOT":4835,"IM_2020":120.0979,"IMN_2_2021":0.9382,"IRS_CARTO":6.1841,"IM_NORM_10":96.73,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":5.8915,"SBASC":35.1446,"PSDSS":26.512,"OVSDE":0.0415,"OVSEE":0.1868,"OVSAE":0.3944,"OVPT":1.1416,"OVHAC":28.1445,"OVSREF":5.0436,"OVSINT":36.8618,"OSCEL":10.2947,"TOP1_IND":"Viv. sin internet (36.9%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":36.86,"TOP2_IND":"Sin educ. básica (35.1%)","TOP3_IND":"Viv. hacinamiento (28.1%)","ETIQUETA_M":"AGEB 0382 | General Escobedo | Grado: Medio","POPUP_HTML":"<b>AGEB 0382</b> — General Escobedo<br><b>Grado:</b> Medio | <b>IM:</b> 120.10<br><b>Pob:</b> 4,835<br>������ Viv. sin internet (36.9%)<br>������ Sin educ. básica (35.1%)<br>������ Viv. hacinamiento (28.1%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.361147,25.810114],[-100.36134,25.808443],[-100.361462,25.808456],[-100.361803,25.808497],[-100.361887,25.808509],[-100.361956,25.808089],[-100.362082,25.807404],[-100.362442,25.80547],[-100.362692,25.805487],[-100.362905,25.805454],[-100.363114,25.805416],[-100.363312,25.805382],[-100.363465,25.805358],[-100.363765,25.805305],[-100.363881,25.805282],[-100.363967,25.80526],[-100.364489,25.80518],[-100.364641,25.805145],[-100.365019,25.805062],[-100.365138,25.804966],[-100.366003,25.804283],[-100.366366,25.804062],[-100.366425,25.804218],[-100.366575,25.804619],[-100.366659,25.804847],[-100.366725,25.805018],[-100.366793,25.80521],[-100.366871,25.805408],[-100.366932,25.805577],[-100.367012,25.805782],[-100.367073,25.805943],[-100.367161,25.806181],[-100.36721,25.80631],[-100.367349,25.806682],[-100.367257,25.80668],[-100.367316,25.80707],[-100.367357,25.807454],[-100.3674,25.807828],[-100.367407,25.807891],[-100.367443,25.808228],[-100.367496,25.808684],[-100.36757,25.809197],[-100.367877,25.809356],[-100.368357,25.809428],[-100.36842,25.809482],[-100.368234,25.809529],[-100.368034,25.809604],[-100.36777,25.809764],[-100.367604,25.809864],[-100.367523,25.809963],[-100.367538,25.810071],[-100.367391,25.810047],[-100.367243,25.810023],[-100.367094,25.810013],[-100.36696,25.809952],[-100.36682,25.809906],[-100.366675,25.809871],[-100.366532,25.80983],[-100.366388,25.809796],[-100.366241,25.809772],[-100.366091,25.809763],[-100.365942,25.809758],[-100.365804,25.809811],[-100.365665,25.80986],[-100.365538,25.809932],[-100.365421,25.810017],[-100.365311,25.810108],[-100.36518,25.810174],[-100.365037,25.810214],[-100.364901,25.810269],[-100.364762,25.81032],[-100.364628,25.81038],[-100.364493,25.810438],[-100.364346,25.810465],[-100.364201,25.810498],[-100.364056,25.810532],[-100.363909,25.810556],[-100.36376,25.810571],[-100.363611,25.810577],[-100.363462,25.810592],[-100.363313,25.810604],[-100.363205,25.810603],[-100.363151,25.81062],[-100.363015,25.810633],[-100.362868,25.810657],[-100.36272,25.810676],[-100.362572,25.810694],[-100.362425,25.810719],[-100.36228,25.810753],[-100.362131,25.810763],[-100.361981,25.81077],[-100.361832,25.810777],[-100.361682,25.81078],[-100.361533,25.810783],[-100.361386,25.81081],[-100.36124,25.810837],[-100.361092,25.810861],[-100.360943,25.81087],[-100.360793,25.810868],[-100.360644,25.810857],[-100.360495,25.810845],[-100.360346,25.810852],[-100.3602,25.810883],[-100.360402,25.810751],[-100.360668,25.810621],[-100.361083,25.810297],[-100.361147,25.810114]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902100010397","OBJECTID":28,"CVEGEO_JOI":"1902100010397","CVE_MUN":"19021","NOM_MUN":"General Escobedo","AGEB":"0397","POB_TOT":5412,"IM_2020":118.4537,"IMN_2_2021":0.9253,"IRS_CARTO":7.4684,"IM_NORM_10":91.38,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":3,"P6A14NAE":6.8729,"SBASC":37.1472,"PSDSS":28.3992,"OVSDE":0.3715,"OVSEE":0.0743,"OVSAE":6.3162,"OVPT":7.4053,"OVHAC":35.2034,"OVSREF":4.7,"OVSINT":45.066,"OSCEL":7.0964,"TOP1_IND":"Viv. sin internet (45.1%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":45.07,"TOP2_IND":"Sin educ. básica (37.1%)","TOP3_IND":"Viv. hacinamiento (35.2%)","ETIQUETA_M":"AGEB 0397 | General Escobedo | Grado: Alto","POPUP_HTML":"<b>AGEB 0397</b> — General Escobedo<br><b>Grado:</b> Alto | <b>IM:</b> 118.45<br><b>Pob:</b> 5,412<br>������ Viv. sin internet (45.1%)<br>������ Sin educ. básica (37.1%)<br>������ Viv. hacinamiento (35.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.358897,25.808108],[-100.358931,25.807993],[-100.359068,25.806689],[-100.359069,25.806623],[-100.359075,25.806555],[-100.359122,25.806013],[-100.359128,25.80596],[-100.35923,25.805021],[-100.359238,25.804943],[-100.359288,25.803986],[-100.35855,25.803945],[-100.35851,25.803629],[-100.358524,25.803425],[-100.358583,25.803182],[-100.358648,25.803019],[-100.358731,25.802904],[-100.358647,25.802735],[-100.358819,25.802735],[-100.358821,25.802735],[-100.359644,25.802811],[-100.359806,25.802832],[-100.359839,25.802827],[-100.359953,25.802614],[-100.360013,25.802461],[-100.360197,25.802526],[-100.360235,25.802531],[-100.360504,25.802601],[-100.360576,25.802622],[-100.360821,25.802631],[-100.360951,25.802632],[-100.361036,25.802664],[-100.361081,25.80258],[-100.361245,25.802354],[-100.361335,25.802404],[-100.361654,25.80258],[-100.361655,25.80258],[-100.361659,25.802582],[-100.361662,25.802763],[-100.361662,25.802785],[-100.361662,25.80279],[-100.361662,25.80279],[-100.362502,25.802738],[-100.362707,25.802726],[-100.363361,25.802685],[-100.363363,25.802685],[-100.36341,25.8027],[-100.363742,25.802728],[-100.363744,25.802728],[-100.363744,25.802728],[-100.364036,25.80273],[-100.364175,25.802732],[-100.364544,25.802723],[-100.364613,25.802819],[-100.36489,25.803213],[-100.364939,25.803141],[-100.365007,25.80307],[-100.365039,25.803045],[-100.365084,25.803026],[-100.36513,25.803015],[-100.365266,25.802972],[-100.365336,25.802963],[-100.365439,25.802964],[-100.36552,25.802996],[-100.365523,25.802855],[-100.365464,25.802708],[-100.365864,25.802682],[-100.366366,25.804062],[-100.366003,25.804283],[-100.365138,25.804966],[-100.365019,25.805062],[-100.364641,25.805145],[-100.364489,25.80518],[-100.363967,25.80526],[-100.363881,25.805282],[-100.363765,25.805305],[-100.363465,25.805358],[-100.363312,25.805382],[-100.363114,25.805416],[-100.362905,25.805454],[-100.362692,25.805487],[-100.362442,25.80547],[-100.362082,25.807404],[-100.361956,25.808089],[-100.361887,25.808509],[-100.361803,25.808497],[-100.361462,25.808456],[-100.36134,25.808443],[-100.361147,25.810114],[-100.360735,25.810064],[-100.360687,25.810064],[-100.360323,25.810027],[-100.360279,25.810009],[-100.35989,25.809972],[-100.359459,25.809928],[-100.359206,25.809902],[-100.359043,25.809885],[-100.359085,25.809439],[-100.35904,25.809403],[-100.359142,25.808298],[-100.359134,25.80814],[-100.358897,25.808108]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901800010669","OBJECTID":29,"CVEGEO_JOI":"1901800010669","CVE_MUN":"19018","NOM_MUN":"García","AGEB":"0669","POB_TOT":2373,"IM_2020":116.7303,"IMN_2_2021":0.9119,"IRS_CARTO":8.8146,"IM_NORM_10":85.78,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":11.1628,"SBASC":39.2151,"PSDSS":33.8254,"OVSDE":0.0,"OVSEE":0.2109,"OVSAE":0.5905,"OVPT":0.4639,"OVHAC":60.0169,"OVSREF":15.0991,"OVSINT":69.2113,"OSCEL":6.6217,"TOP1_IND":"Viv. sin internet (69.2%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":69.21,"TOP2_IND":"Viv. hacinamiento (60.0%)","TOP3_IND":"Sin educ. básica (39.2%)","ETIQUETA_M":"AGEB 0669 | García | Grado: Alto","POPUP_HTML":"<b>AGEB 0669</b> — García<br><b>Grado:</b> Alto | <b>IM:</b> 116.73<br><b>Pob:</b> 2,373<br>������ Viv. sin internet (69.2%)<br>������ Viv. hacinamiento (60.0%)<br>������ Sin educ. básica (39.2%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.625344,25.820065],[-100.625162,25.819916],[-100.624772,25.819618],[-100.624634,25.819481],[-100.62454,25.819366],[-100.624463,25.819228],[-100.624438,25.819053],[-100.624455,25.818605],[-100.62448,25.818177],[-100.624501,25.817729],[-100.624518,25.817298],[-100.624548,25.816875],[-100.624525,25.816463],[-100.624486,25.816408],[-100.62411,25.815873],[-100.624485,25.815959],[-100.62529,25.81634],[-100.625705,25.816455],[-100.626061,25.816554],[-100.626456,25.816664],[-100.626814,25.816763],[-100.627211,25.816873],[-100.627603,25.816982],[-100.627971,25.817084],[-100.628357,25.817192],[-100.628264,25.817479],[-100.630051,25.81809],[-100.629986,25.81832],[-100.629572,25.820004],[-100.629241,25.820371],[-100.628446,25.821252],[-100.627848,25.821927],[-100.626914,25.821223],[-100.626666,25.821047],[-100.626456,25.820886],[-100.62617,25.820673],[-100.626021,25.820572],[-100.625582,25.820241],[-100.625344,25.820065]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901800011667","OBJECTID":30,"CVEGEO_JOI":"1901800011667","CVE_MUN":"19018","NOM_MUN":"García","AGEB":"1667","POB_TOT":1252,"IM_2020":119.5926,"IMN_2_2021":0.9342,"IRS_CARTO":6.5788,"IM_NORM_10":95.09,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":13.7778,"SBASC":22.4242,"PSDSS":29.7276,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":0.0,"OVPT":0.2396,"OVHAC":22.7636,"OVSREF":8.6262,"OVSINT":73.2428,"OSCEL":1.6773,"TOP1_IND":"Viv. sin internet (73.2%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":73.24,"TOP2_IND":"Sin servicio de salud (29.7%)","TOP3_IND":"Viv. hacinamiento (22.8%)","ETIQUETA_M":"AGEB 1667 | García | Grado: Medio","POPUP_HTML":"<b>AGEB 1667</b> — García<br><b>Grado:</b> Medio | <b>IM:</b> 119.59<br><b>Pob:</b> 1,252<br>������ Viv. sin internet (73.2%)<br>������ Sin servicio de salud (29.7%)<br>������ Viv. hacinamiento (22.8%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.627848,25.821927],[-100.628446,25.821252],[-100.629241,25.820371],[-100.629664,25.820534],[-100.629677,25.82053],[-100.630193,25.820412],[-100.6306,25.820318],[-100.631654,25.820076],[-100.632379,25.820113],[-100.634788,25.822161],[-100.63415,25.822289],[-100.63411,25.822297],[-100.633569,25.821636],[-100.633563,25.821628],[-100.632397,25.822329],[-100.630815,25.823424],[-100.630318,25.823796],[-100.629621,25.823292],[-100.629001,25.822825],[-100.628003,25.822092],[-100.627848,25.821927]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901800010527","OBJECTID":31,"CVEGEO_JOI":"1901800010527","CVE_MUN":"19018","NOM_MUN":"García","AGEB":"0527","POB_TOT":2533,"IM_2020":115.7426,"IMN_2_2021":0.9041,"IRS_CARTO":9.5863,"IM_NORM_10":82.57,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":1,"P6A14NAE":7.619,"SBASC":45.6701,"PSDSS":42.5128,"OVSDE":0.0,"OVSEE":0.1185,"OVSAE":1.1063,"OVPT":9.68,"OVHAC":41.9597,"OVSREF":11.5369,"OVSINT":61.9913,"OSCEL":13.0778,"TOP1_IND":"Viv. sin internet (62.0%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":61.99,"TOP2_IND":"Sin educ. básica (45.7%)","TOP3_IND":"Sin servicio de salud (42.5%)","ETIQUETA_M":"AGEB 0527 | García | Grado: Alto","POPUP_HTML":"<b>AGEB 0527</b> — García<br><b>Grado:</b> Alto | <b>IM:</b> 115.74<br><b>Pob:</b> 2,533<br>������ Viv. sin internet (62.0%)<br>������ Sin educ. básica (45.7%)<br>������ Sin servicio de salud (42.5%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.63444,25.806315],[-100.632232,25.805269],[-100.633489,25.803046],[-100.63483,25.803741],[-100.63487,25.803761],[-100.635724,25.804152],[-100.635771,25.804173],[-100.637543,25.805008],[-100.637598,25.805034],[-100.637667,25.805066],[-100.638371,25.805386],[-100.638388,25.805397],[-100.63843,25.805795],[-100.638492,25.806242],[-100.638568,25.8067],[-100.63862,25.807147],[-100.638668,25.807605],[-100.638745,25.808117],[-100.638758,25.808207],[-100.638728,25.808266],[-100.638676,25.808298],[-100.638636,25.808302],[-100.638588,25.808307],[-100.638536,25.808299],[-100.638457,25.808264],[-100.636317,25.807191],[-100.6345,25.806345],[-100.63444,25.806315]]]]}},{"type":"Feature","properties":{"CVEGEO":"1901800011084","OBJECTID":32,"CVEGEO_JOI":"1901800011084","CVE_MUN":"19018","NOM_MUN":"García","AGEB":"1084","POB_TOT":3923,"IM_2020":119.8617,"IMN_2_2021":0.9363,"IRS_CARTO":6.3685,"IM_NORM_10":95.96,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":7.9622,"SBASC":27.3794,"PSDSS":33.0697,"OVSDE":0.0,"OVSEE":0.3083,"OVSAE":0.2312,"OVPT":1.2606,"OVHAC":20.889,"OVSREF":10.4113,"OVSINT":51.3256,"OSCEL":4.8072,"TOP1_IND":"Viv. sin internet (51.3%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":51.33,"TOP2_IND":"Sin servicio de salud (33.1%)","TOP3_IND":"Sin educ. básica (27.4%)","ETIQUETA_M":"AGEB 1084 | García | Grado: Medio","POPUP_HTML":"<b>AGEB 1084</b> — García<br><b>Grado:</b> Medio | <b>IM:</b> 119.86<br><b>Pob:</b> 3,923<br>������ Viv. sin internet (51.3%)<br>������ Sin servicio de salud (33.1%)<br>������ Sin educ. básica (27.4%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.63529,25.810804],[-100.633126,25.809543],[-100.633587,25.808714],[-100.632722,25.808268],[-100.632893,25.808073],[-100.633816,25.807021],[-100.634317,25.806457],[-100.634435,25.806322],[-100.63444,25.806315],[-100.6345,25.806345],[-100.636317,25.807191],[-100.638457,25.808264],[-100.638536,25.808299],[-100.638588,25.808307],[-100.638636,25.808302],[-100.638676,25.808298],[-100.638728,25.808266],[-100.638758,25.808207],[-100.638745,25.808117],[-100.638804,25.808134],[-100.63884,25.808156],[-100.638866,25.80818],[-100.638894,25.808192],[-100.638931,25.808201],[-100.639009,25.808183],[-100.639028,25.808538],[-100.639188,25.810954],[-100.639205,25.811188],[-100.639001,25.811088],[-100.638204,25.810698],[-100.637802,25.81134],[-100.637667,25.811556],[-100.637638,25.811601],[-100.637432,25.811929],[-100.637234,25.812246],[-100.636984,25.812605],[-100.636707,25.812455],[-100.636281,25.812213],[-100.635856,25.811988],[-100.635322,25.811758],[-100.635257,25.811702],[-100.635339,25.811531],[-100.635605,25.81098],[-100.63529,25.810804]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902600012385","OBJECTID":33,"CVEGEO_JOI":"1902600012385","CVE_MUN":"19026","NOM_MUN":"Guadalupe","AGEB":"2385","POB_TOT":108,"IM_2020":114.7556,"IMN_2_2021":0.8964,"IRS_CARTO":10.3572,"IM_NORM_10":79.36,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":4.3478,"SBASC":35.1351,"PSDSS":39.2523,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":42.5926,"OVPT":2.7778,"OVHAC":61.1111,"OVSREF":5.5556,"OVSINT":70.3704,"OSCEL":9.2593,"TOP1_IND":"Viv. sin internet (70.4%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":70.37,"TOP2_IND":"Viv. hacinamiento (61.1%)","TOP3_IND":"Viv. sin agua (42.6%)","ETIQUETA_M":"AGEB 2385 | Guadalupe | Grado: Muy alto","POPUP_HTML":"<b>AGEB 2385</b> — Guadalupe<br><b>Grado:</b> Muy alto | <b>IM:</b> 114.76<br><b>Pob:</b> 108<br>������ Viv. sin internet (70.4%)<br>������ Viv. hacinamiento (61.1%)<br>������ Viv. sin agua (42.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.210278,25.639368],[-100.210067,25.639329],[-100.210193,25.639292],[-100.210314,25.639257],[-100.210392,25.639155],[-100.210522,25.638927],[-100.210803,25.638669],[-100.210946,25.638578],[-100.211505,25.638403],[-100.211687,25.638505],[-100.211524,25.638808],[-100.211363,25.639167],[-100.21137,25.639208],[-100.211376,25.639239],[-100.211382,25.639283],[-100.211215,25.639662],[-100.211028,25.639601],[-100.210278,25.639368]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902600012690","OBJECTID":34,"CVEGEO_JOI":"1902600012690","CVE_MUN":"19026","NOM_MUN":"Guadalupe","AGEB":"2690","POB_TOT":79,"IM_2020":115.5476,"IMN_2_2021":0.9026,"IRS_CARTO":9.7385,"IM_NORM_10":81.94,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":1,"P6A14NAE":0.0,"SBASC":44.2308,"PSDSS":46.8354,"OVSDE":0.0,"OVSEE":2.5316,"OVSAE":0.0,"OVPT":22.7848,"OVHAC":45.5696,"OVSREF":12.6582,"OVSINT":70.8861,"OSCEL":0.0,"TOP1_IND":"Viv. sin internet (70.9%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":70.89,"TOP2_IND":"Sin servicio de salud (46.8%)","TOP3_IND":"Viv. hacinamiento (45.6%)","ETIQUETA_M":"AGEB 2690 | Guadalupe | Grado: Alto","POPUP_HTML":"<b>AGEB 2690</b> — Guadalupe<br><b>Grado:</b> Alto | <b>IM:</b> 115.55<br><b>Pob:</b> 79<br>������ Viv. sin internet (70.9%)<br>������ Sin servicio de salud (46.8%)<br>������ Viv. hacinamiento (45.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.211376,25.639239],[-100.21137,25.639208],[-100.211363,25.639167],[-100.211524,25.638808],[-100.211687,25.638505],[-100.211505,25.638403],[-100.210946,25.638578],[-100.210803,25.638669],[-100.210522,25.638927],[-100.210392,25.639155],[-100.210314,25.639257],[-100.210193,25.639292],[-100.21015,25.639198],[-100.210202,25.639093],[-100.210307,25.638935],[-100.21034,25.638883],[-100.210355,25.638847],[-100.210339,25.638818],[-100.21035,25.638775],[-100.210406,25.638742],[-100.210528,25.638626],[-100.210622,25.638557],[-100.210651,25.638502],[-100.210754,25.638441],[-100.210817,25.63842],[-100.210862,25.638395],[-100.210936,25.638303],[-100.211023,25.638255],[-100.211156,25.638273],[-100.211257,25.638242],[-100.211331,25.638177],[-100.211477,25.638024],[-100.211606,25.637938],[-100.211837,25.637836],[-100.211925,25.637761],[-100.212162,25.637659],[-100.212257,25.637565],[-100.212394,25.637442],[-100.212852,25.637232],[-100.213115,25.637413],[-100.212831,25.637682],[-100.212333,25.638022],[-100.212333,25.6384],[-100.212361,25.638431],[-100.212301,25.638568],[-100.212256,25.638561],[-100.212203,25.638644],[-100.212119,25.638948],[-100.211951,25.639419],[-100.211376,25.639239]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902600012099","OBJECTID":35,"CVEGEO_JOI":"1902600012099","CVE_MUN":"19026","NOM_MUN":"Guadalupe","AGEB":"2099","POB_TOT":5241,"IM_2020":119.0923,"IMN_2_2021":0.9303,"IRS_CARTO":6.9695,"IM_NORM_10":93.46,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":3,"P6A14NAE":4.9279,"SBASC":39.5899,"PSDSS":30.8838,"OVSDE":0.1145,"OVSEE":0.1717,"OVSAE":5.8195,"OVPT":1.9462,"OVHAC":34.5736,"OVSREF":3.0719,"OVSINT":37.9889,"OSCEL":9.6356,"TOP1_IND":"Sin educ. básica (39.6%)","TOP1_CLAVE":"SBASC","TOP1_PCT":39.59,"TOP2_IND":"Viv. sin internet (38.0%)","TOP3_IND":"Viv. hacinamiento (34.6%)","ETIQUETA_M":"AGEB 2099 | Guadalupe | Grado: Medio","POPUP_HTML":"<b>AGEB 2099</b> — Guadalupe<br><b>Grado:</b> Medio | <b>IM:</b> 119.09<br><b>Pob:</b> 5,241<br>������ Sin educ. básica (39.6%)<br>������ Viv. sin internet (38.0%)<br>������ Viv. hacinamiento (34.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.216888,25.646168],[-100.216191,25.645999],[-100.213824,25.645508],[-100.213784,25.645713],[-100.21237,25.645419],[-100.212378,25.645354],[-100.21215,25.645247],[-100.211953,25.645157],[-100.211883,25.645203],[-100.211561,25.645193],[-100.210411,25.645146],[-100.210432,25.645024],[-100.210531,25.644558],[-100.210627,25.6441],[-100.210717,25.643642],[-100.210807,25.643182],[-100.210823,25.643105],[-100.211782,25.643341],[-100.211976,25.643386],[-100.212042,25.643083],[-100.212262,25.643081],[-100.212277,25.642991],[-100.212216,25.642902],[-100.21231,25.642566],[-100.212479,25.642603],[-100.212662,25.642643],[-100.212778,25.642606],[-100.212813,25.642359],[-100.212759,25.642357],[-100.212703,25.642351],[-100.212505,25.642382],[-100.212463,25.642388],[-100.212449,25.642356],[-100.212488,25.642222],[-100.212509,25.64195],[-100.212574,25.641676],[-100.212662,25.641431],[-100.212696,25.641381],[-100.213234,25.641458],[-100.213333,25.641009],[-100.213585,25.64078],[-100.213776,25.640746],[-100.213948,25.640541],[-100.213957,25.640527],[-100.214091,25.640332],[-100.214278,25.640441],[-100.214382,25.640288],[-100.214647,25.640412],[-100.214689,25.640321],[-100.214832,25.640363],[-100.214875,25.640473],[-100.215035,25.640567],[-100.215088,25.64048],[-100.215222,25.640393],[-100.215413,25.640494],[-100.215568,25.640594],[-100.215709,25.640664],[-100.215651,25.640864],[-100.215737,25.640916],[-100.215728,25.641044],[-100.215686,25.641153],[-100.215623,25.641359],[-100.215444,25.641452],[-100.215315,25.641482],[-100.215348,25.641621],[-100.215408,25.641654],[-100.215557,25.641557],[-100.215609,25.641664],[-100.215824,25.641688],[-100.215947,25.641722],[-100.216141,25.641739],[-100.216522,25.641675],[-100.216592,25.641658],[-100.216704,25.641645],[-100.217494,25.641772],[-100.217758,25.641831],[-100.218078,25.641959],[-100.2181,25.642198],[-100.218338,25.642319],[-100.218636,25.64237],[-100.218554,25.642672],[-100.218547,25.642811],[-100.218379,25.642784],[-100.218091,25.64275],[-100.218097,25.643088],[-100.218102,25.643397],[-100.218099,25.643738],[-100.218101,25.643819],[-100.218086,25.643874],[-100.21802,25.644001],[-100.217907,25.644199],[-100.217876,25.644239],[-100.217833,25.644296],[-100.217799,25.644351],[-100.217822,25.644426],[-100.217799,25.644878],[-100.217799,25.644893],[-100.217801,25.645055],[-100.217801,25.645084],[-100.217875,25.645293],[-100.217891,25.645322],[-100.217957,25.64538],[-100.217999,25.645439],[-100.217874,25.645508],[-100.217781,25.645825],[-100.217695,25.646177],[-100.217613,25.646551],[-100.217247,25.646263],[-100.217,25.646146],[-100.216918,25.646162],[-100.216888,25.646168]]]]}},{"type":"Feature","properties":{"CVEGEO":"1902600012101","OBJECTID":36,"CVEGEO_JOI":"1902600012101","CVE_MUN":"19026","NOM_MUN":"Guadalupe","AGEB":"2101","POB_TOT":3626,"IM_2020":118.136,"IMN_2_2021":0.9228,"IRS_CARTO":7.7166,"IM_NORM_10":90.35,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":4.878,"SBASC":40.3075,"PSDSS":40.8163,"OVSDE":0.0552,"OVSEE":0.0276,"OVSAE":8.4783,"OVPT":1.0218,"OVHAC":38.9671,"OVSREF":2.2922,"OVSINT":48.7434,"OSCEL":8.3402,"TOP1_IND":"Viv. sin internet (48.7%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":48.74,"TOP2_IND":"Sin servicio de salud (40.8%)","TOP3_IND":"Sin educ. básica (40.3%)","ETIQUETA_M":"AGEB 2101 | Guadalupe | Grado: Alto","POPUP_HTML":"<b>AGEB 2101</b> — Guadalupe<br><b>Grado:</b> Alto | <b>IM:</b> 118.14<br><b>Pob:</b> 3,626<br>������ Viv. sin internet (48.7%)<br>������ Sin servicio de salud (40.8%)<br>������ Sin educ. básica (40.3%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.203271,25.644311],[-100.203291,25.644283],[-100.203669,25.643711],[-100.204014,25.643113],[-100.205051,25.641496],[-100.205096,25.641511],[-100.205296,25.641145],[-100.205664,25.640727],[-100.20566,25.640674],[-100.206191,25.640132],[-100.206227,25.640093],[-100.206508,25.639875],[-100.207083,25.63943],[-100.209109,25.637862],[-100.209595,25.637486],[-100.210917,25.636422],[-100.211546,25.636709],[-100.211814,25.636831],[-100.212466,25.637097],[-100.212293,25.637282],[-100.212246,25.637386],[-100.212257,25.637565],[-100.212162,25.637659],[-100.211925,25.637761],[-100.211837,25.637836],[-100.211606,25.637938],[-100.211477,25.638024],[-100.211331,25.638177],[-100.211257,25.638242],[-100.211156,25.638273],[-100.211023,25.638255],[-100.210936,25.638303],[-100.210862,25.638395],[-100.210817,25.63842],[-100.210754,25.638441],[-100.210651,25.638502],[-100.210622,25.638557],[-100.210528,25.638626],[-100.210406,25.638742],[-100.21035,25.638775],[-100.210339,25.638818],[-100.210355,25.638847],[-100.21034,25.638883],[-100.210307,25.638935],[-100.210202,25.639093],[-100.21015,25.639198],[-100.210193,25.639292],[-100.210067,25.639329],[-100.209343,25.640534],[-100.209382,25.640586],[-100.209204,25.641314],[-100.209198,25.641331],[-100.209077,25.641837],[-100.209007,25.642117],[-100.20906,25.64216],[-100.208977,25.642368],[-100.208966,25.642395],[-100.208968,25.642604],[-100.208961,25.642779],[-100.209116,25.642824],[-100.208855,25.642845],[-100.208669,25.642884],[-100.208382,25.642499],[-100.208368,25.642453],[-100.20833,25.642513],[-100.208103,25.642986],[-100.207965,25.64325],[-100.207947,25.64325],[-100.207864,25.643511],[-100.207702,25.644027],[-100.207542,25.644551],[-100.206994,25.64459],[-100.205699,25.64476],[-100.205432,25.64479],[-100.205172,25.644809],[-100.205083,25.644853],[-100.204947,25.644856],[-100.204754,25.644874],[-100.204714,25.644853],[-100.203827,25.644522],[-100.203271,25.644311]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903103130497","OBJECTID":37,"CVEGEO_JOI":"1903103130497","CVE_MUN":"19031","NOM_MUN":"Juárez","AGEB":"0497","POB_TOT":64,"IM_2020":118.2001,"IMN_2_2021":0.9233,"IRS_CARTO":7.6665,"IM_NORM_10":90.56,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":3,"P6A14NAE":0.0,"SBASC":38.1818,"PSDSS":40.625,"OVSDE":0.0,"OVSEE":1.6949,"OVSAE":10.1695,"OVPT":1.6949,"OVHAC":52.5424,"OVSREF":1.6949,"OVSINT":66.1017,"OSCEL":3.3898,"TOP1_IND":"Viv. sin internet (66.1%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":66.1,"TOP2_IND":"Viv. hacinamiento (52.5%)","TOP3_IND":"Sin servicio de salud (40.6%)","ETIQUETA_M":"AGEB 0497 | Juárez | Grado: Alto","POPUP_HTML":"<b>AGEB 0497</b> — Juárez<br><b>Grado:</b> Alto | <b>IM:</b> 118.20<br><b>Pob:</b> 64<br>������ Viv. sin internet (66.1%)<br>������ Viv. hacinamiento (52.5%)<br>������ Sin servicio de salud (40.6%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.121595,25.604189],[-100.124786,25.604273],[-100.125603,25.600972],[-100.12606,25.601074],[-100.126945,25.601274],[-100.127655,25.601432],[-100.128407,25.601601],[-100.129086,25.601753],[-100.129765,25.601906],[-100.130458,25.602061],[-100.131141,25.602214],[-100.133198,25.60268],[-100.132703,25.603396],[-100.13272,25.603592],[-100.132759,25.603727],[-100.13277,25.603766],[-100.13284,25.604029],[-100.133133,25.605074],[-100.132179,25.606604],[-100.131279,25.608067],[-100.131244,25.608122],[-100.130883,25.608711],[-100.130533,25.609282],[-100.130242,25.609756],[-100.130166,25.60966],[-100.129711,25.60909],[-100.129242,25.608513],[-100.128779,25.607948],[-100.128707,25.607941],[-100.12806,25.607782],[-100.127351,25.607607],[-100.126235,25.606799],[-100.123321,25.605477],[-100.122996,25.605566],[-100.122682,25.605943],[-100.12249,25.606173],[-100.122435,25.606261],[-100.122132,25.606259],[-100.121726,25.606106],[-100.12159,25.606006],[-100.121482,25.605852],[-100.121324,25.605481],[-100.121242,25.605216],[-100.121327,25.605188],[-100.121393,25.605136],[-100.121475,25.605059],[-100.121505,25.604932],[-100.121551,25.604581],[-100.121595,25.604189]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903103130444","OBJECTID":38,"CVEGEO_JOI":"1903103130444","CVE_MUN":"19031","NOM_MUN":"Juárez","AGEB":"0444","POB_TOT":246,"IM_2020":114.0569,"IMN_2_2021":0.891,"IRS_CARTO":10.903,"IM_NORM_10":77.09,"GM_20_2021":"Muy alto","GM_ORDEN":1,"GM_COLOR_H":"#C0392B","QUINTIL":1,"P6A14NAE":8.8235,"SBASC":38.0952,"PSDSS":36.1789,"OVSDE":2.1008,"OVSEE":1.6807,"OVSAE":36.9748,"OVPT":4.6218,"OVHAC":25.6303,"OVSREF":10.5042,"OVSINT":77.7311,"OSCEL":5.4622,"TOP1_IND":"Viv. sin internet (77.7%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":77.73,"TOP2_IND":"Sin educ. básica (38.1%)","TOP3_IND":"Viv. sin agua (37.0%)","ETIQUETA_M":"AGEB 0444 | Juárez | Grado: Muy alto","POPUP_HTML":"<b>AGEB 0444</b> — Juárez<br><b>Grado:</b> Muy alto | <b>IM:</b> 114.06<br><b>Pob:</b> 246<br>������ Viv. sin internet (77.7%)<br>������ Sin educ. básica (38.1%)<br>������ Viv. sin agua (37.0%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.128617,25.612383],[-100.130242,25.609756],[-100.130533,25.609282],[-100.130883,25.608711],[-100.131244,25.608122],[-100.131279,25.608067],[-100.132179,25.606604],[-100.133133,25.605074],[-100.133302,25.605699],[-100.133478,25.605727],[-100.134272,25.60586],[-100.135058,25.605993],[-100.135858,25.606127],[-100.136662,25.606263],[-100.137451,25.606395],[-100.136199,25.607812],[-100.136168,25.607848],[-100.136076,25.607923],[-100.135647,25.608261],[-100.135298,25.608537],[-100.135028,25.608607],[-100.134465,25.60875],[-100.134186,25.60882],[-100.133636,25.609087],[-100.133748,25.609192],[-100.134878,25.609653],[-100.135023,25.609703],[-100.135575,25.610106],[-100.136223,25.610576],[-100.136729,25.611104],[-100.137211,25.611605],[-100.137251,25.611633],[-100.137198,25.611646],[-100.136258,25.611973],[-100.135193,25.612345],[-100.134397,25.612622],[-100.133529,25.612925],[-100.132967,25.613125],[-100.132926,25.613158],[-100.132435,25.613562],[-100.132315,25.613645],[-100.131978,25.613872],[-100.131762,25.614044],[-100.131244,25.614465],[-100.12938,25.61301],[-100.129306,25.612947],[-100.129178,25.612839],[-100.128617,25.612383]]]]}},{"type":"Feature","properties":{"CVEGEO":"1903103130478","OBJECTID":39,"CVEGEO_JOI":"1903103130478","CVE_MUN":"19031","NOM_MUN":"Juárez","AGEB":"0478","POB_TOT":412,"IM_2020":119.5404,"IMN_2_2021":0.9338,"IRS_CARTO":6.6196,"IM_NORM_10":94.92,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":4,"P6A14NAE":4.6154,"SBASC":38.5852,"PSDSS":32.0388,"OVSDE":0.0,"OVSEE":0.0,"OVSAE":2.9126,"OVPT":0.9709,"OVHAC":22.5728,"OVSREF":7.2816,"OVSINT":71.1165,"OSCEL":5.5825,"TOP1_IND":"Viv. sin internet (71.1%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":71.12,"TOP2_IND":"Sin educ. básica (38.6%)","TOP3_IND":"Sin servicio de salud (32.0%)","ETIQUETA_M":"AGEB 0478 | Juárez | Grado: Medio","POPUP_HTML":"<b>AGEB 0478</b> — Juárez<br><b>Grado:</b> Medio | <b>IM:</b> 119.54<br><b>Pob:</b> 412<br>������ Viv. sin internet (71.1%)<br>������ Sin educ. básica (38.6%)<br>������ Sin servicio de salud (32.0%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.137451,25.606395],[-100.137892,25.60647],[-100.138323,25.605616],[-100.138927,25.605734],[-100.139712,25.605883],[-100.140507,25.606038],[-100.140888,25.60611],[-100.141231,25.606255],[-100.141894,25.606529],[-100.142506,25.606783],[-100.142579,25.606785],[-100.14348,25.606788],[-100.144415,25.606792],[-100.145327,25.606795],[-100.145386,25.606736],[-100.145598,25.606734],[-100.145166,25.60723],[-100.143683,25.608926],[-100.143534,25.609097],[-100.143137,25.609552],[-100.142948,25.60976],[-100.142665,25.609834],[-100.142478,25.60988],[-100.141792,25.610048],[-100.141139,25.610272],[-100.141092,25.610289],[-100.140482,25.610502],[-100.139836,25.610728],[-100.13919,25.610954],[-100.138524,25.611185],[-100.137874,25.611409],[-100.137251,25.611633],[-100.137211,25.611605],[-100.136729,25.611104],[-100.136223,25.610576],[-100.135575,25.610106],[-100.135023,25.609703],[-100.134878,25.609653],[-100.133748,25.609192],[-100.133636,25.609087],[-100.134186,25.60882],[-100.134465,25.60875],[-100.135028,25.608607],[-100.135298,25.608537],[-100.135647,25.608261],[-100.136076,25.607923],[-100.136168,25.607848],[-100.136199,25.607812],[-100.137451,25.606395]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904100010099","OBJECTID":40,"CVEGEO_JOI":"1904100010099","CVE_MUN":"19041","NOM_MUN":"Pesquería","AGEB":"0099","POB_TOT":1360,"IM_2020":120.5232,"IMN_2_2021":0.9415,"IRS_CARTO":5.8518,"IM_NORM_10":98.11,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":5,"P6A14NAE":6.9307,"SBASC":36.8982,"PSDSS":19.4118,"OVSDE":0.0,"OVSEE":0.0735,"OVSAE":0.0,"OVPT":1.3971,"OVHAC":27.1324,"OVSREF":3.3088,"OVSINT":45.0735,"OSCEL":8.5294,"TOP1_IND":"Viv. sin internet (45.1%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":45.07,"TOP2_IND":"Sin educ. básica (36.9%)","TOP3_IND":"Viv. hacinamiento (27.1%)","ETIQUETA_M":"AGEB 0099 | Pesquería | Grado: Medio","POPUP_HTML":"<b>AGEB 0099</b> — Pesquería<br><b>Grado:</b> Medio | <b>IM:</b> 120.52<br><b>Pob:</b> 1,360<br>������ Viv. sin internet (45.1%)<br>������ Sin educ. básica (36.9%)<br>������ Viv. hacinamiento (27.1%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.03854,25.797044],[-100.038458,25.796465],[-100.037617,25.796732],[-100.037614,25.796733],[-100.036966,25.796952],[-100.036829,25.796498],[-100.036761,25.796231],[-100.036634,25.795771],[-100.036549,25.795388],[-100.036438,25.795037],[-100.036126,25.793889],[-100.035866,25.792754],[-100.035865,25.792753],[-100.035915,25.792479],[-100.036026,25.792261],[-100.036263,25.792014],[-100.036297,25.791963],[-100.036316,25.791935],[-100.036367,25.791896],[-100.036434,25.791893],[-100.036434,25.791893],[-100.036437,25.791893],[-100.036565,25.791955],[-100.036867,25.792156],[-100.036962,25.792226],[-100.037027,25.792269],[-100.03717,25.792335],[-100.037171,25.792335],[-100.037173,25.792336],[-100.037232,25.79235],[-100.037291,25.792365],[-100.037294,25.792365],[-100.037294,25.792365],[-100.037324,25.792366],[-100.037445,25.792366],[-100.037446,25.792366],[-100.037448,25.792366],[-100.037664,25.792354],[-100.037668,25.792354],[-100.037814,25.792333],[-100.037817,25.792332],[-100.037903,25.792315],[-100.037904,25.792315],[-100.037907,25.792314],[-100.038032,25.79227],[-100.038089,25.792249],[-100.038092,25.792248],[-100.038352,25.792153],[-100.038496,25.7921],[-100.038496,25.7921],[-100.038499,25.792099],[-100.038726,25.792022],[-100.038727,25.792021],[-100.038729,25.792021],[-100.038896,25.791957],[-100.03907,25.791892],[-100.039073,25.79189],[-100.039106,25.791876],[-100.039185,25.791843],[-100.039188,25.791842],[-100.039188,25.791842],[-100.039244,25.791808],[-100.039412,25.791678],[-100.039618,25.791512],[-100.039798,25.791365],[-100.039998,25.791177],[-100.040195,25.790981],[-100.040315,25.790825],[-100.040666,25.79034],[-100.04075,25.790251],[-100.042194,25.790242],[-100.042195,25.790242],[-100.042198,25.790242],[-100.045244,25.790289],[-100.045247,25.790289],[-100.045248,25.790289],[-100.045249,25.790289],[-100.045251,25.790289],[-100.045251,25.790291],[-100.045273,25.791319],[-100.045293,25.792124],[-100.045325,25.793339],[-100.045337,25.794823],[-100.045343,25.795446],[-100.045344,25.795545],[-100.045344,25.795548],[-100.045345,25.795549],[-100.045367,25.795844],[-100.045367,25.795844],[-100.045367,25.795845],[-100.045333,25.795856],[-100.045166,25.796084],[-100.044924,25.796387],[-100.044787,25.796537],[-100.044704,25.796596],[-100.044597,25.796627],[-100.044594,25.796628],[-100.044452,25.796628],[-100.044412,25.796691],[-100.044352,25.796856],[-100.044265,25.796989],[-100.044238,25.797056],[-100.044235,25.797056],[-100.043844,25.797051],[-100.043886,25.796874],[-100.042915,25.797054],[-100.042912,25.797054],[-100.041948,25.7972],[-100.041944,25.797201],[-100.041876,25.797211],[-100.041873,25.797212],[-100.040822,25.797366],[-100.040818,25.797367],[-100.039099,25.797619],[-100.039096,25.797619],[-100.038606,25.79769],[-100.038599,25.797652],[-100.038543,25.797074],[-100.03854,25.797044]]]]}},{"type":"Feature","properties":{"CVEGEO":"190410001014A","OBJECTID":41,"CVEGEO_JOI":"190410001014A","CVE_MUN":"19041","NOM_MUN":"Pesquería","AGEB":"014A","POB_TOT":1112,"IM_2020":119.377,"IMN_2_2021":0.9325,"IRS_CARTO":6.7472,"IM_NORM_10":94.39,"GM_20_2021":"Medio","GM_ORDEN":3,"GM_COLOR_H":"#B7950B","QUINTIL":3,"P6A14NAE":10.5263,"SBASC":38.1235,"PSDSS":19.8741,"OVSDE":0.0,"OVSEE":0.0903,"OVSAE":0.0,"OVPT":3.2491,"OVHAC":31.9495,"OVSREF":6.4982,"OVSINT":49.1877,"OSCEL":6.0469,"TOP1_IND":"Viv. sin internet (49.2%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":49.19,"TOP2_IND":"Sin educ. básica (38.1%)","TOP3_IND":"Viv. hacinamiento (31.9%)","ETIQUETA_M":"AGEB 014A | Pesquería | Grado: Medio","POPUP_HTML":"<b>AGEB 014A</b> — Pesquería<br><b>Grado:</b> Medio | <b>IM:</b> 119.38<br><b>Pob:</b> 1,112<br>������ Viv. sin internet (49.2%)<br>������ Sin educ. básica (38.1%)<br>������ Viv. hacinamiento (31.9%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.03943,25.799856],[-100.039846,25.79971],[-100.039938,25.79968],[-100.040031,25.79965],[-100.039933,25.799528],[-100.039819,25.799392],[-100.039572,25.799114],[-100.039575,25.799101],[-100.039553,25.799076],[-100.039083,25.798546],[-100.038861,25.798293],[-100.038907,25.798266],[-100.038781,25.798223],[-100.038725,25.798138],[-100.03867,25.798012],[-100.038653,25.797916],[-100.038625,25.797765],[-100.038606,25.79769],[-100.039096,25.797619],[-100.039099,25.797619],[-100.040818,25.797367],[-100.040822,25.797366],[-100.041873,25.797212],[-100.041876,25.797211],[-100.041944,25.797201],[-100.041948,25.7972],[-100.042912,25.797054],[-100.042915,25.797054],[-100.043886,25.796874],[-100.043844,25.797051],[-100.044235,25.797056],[-100.044238,25.797056],[-100.044265,25.796989],[-100.044352,25.796856],[-100.044412,25.796691],[-100.044452,25.796628],[-100.044594,25.796628],[-100.044597,25.796627],[-100.044704,25.796596],[-100.044787,25.796537],[-100.044924,25.796387],[-100.045166,25.796084],[-100.045333,25.795856],[-100.045367,25.795845],[-100.045367,25.795844],[-100.045452,25.795845],[-100.045488,25.795839],[-100.04549,25.795839],[-100.045534,25.795853],[-100.045691,25.795917],[-100.046895,25.79653],[-100.047802,25.797022],[-100.048512,25.797401],[-100.050266,25.798314],[-100.051024,25.798763],[-100.051023,25.798765],[-100.050993,25.798804],[-100.050994,25.798805],[-100.05141,25.799043],[-100.051408,25.799043],[-100.051408,25.799043],[-100.051355,25.799062],[-100.051352,25.799063],[-100.048841,25.799936],[-100.04884,25.799935],[-100.048816,25.79984],[-100.048813,25.799841],[-100.048683,25.799877],[-100.048611,25.799925],[-100.04854,25.799984],[-100.048448,25.800052],[-100.048357,25.800114],[-100.048248,25.80017],[-100.047683,25.800365],[-100.043445,25.801874],[-100.041426,25.802581],[-100.040282,25.802991],[-100.040281,25.80299],[-100.038468,25.801941],[-100.038466,25.80194],[-100.03916,25.801727],[-100.039161,25.801726],[-100.038383,25.800227],[-100.038607,25.800147],[-100.039013,25.800002],[-100.03943,25.799856]]]]}},{"type":"Feature","properties":{"CVEGEO":"1904100010262","OBJECTID":42,"CVEGEO_JOI":"1904100010262","CVE_MUN":"19041","NOM_MUN":"Pesquería","AGEB":"0262","POB_TOT":100,"IM_2020":118.1415,"IMN_2_2021":0.9229,"IRS_CARTO":7.7123,"IM_NORM_10":90.37,"GM_20_2021":"Alto","GM_ORDEN":2,"GM_COLOR_H":"#D35400","QUINTIL":2,"P6A14NAE":9.0909,"SBASC":31.6667,"PSDSS":8.0,"OVSDE":0.0,"OVSEE":3.0,"OVSAE":0.0,"OVPT":4.0,"OVHAC":64.0,"OVSREF":13.0,"OVSINT":67.0,"OSCEL":9.0,"TOP1_IND":"Viv. sin internet (67.0%)","TOP1_CLAVE":"OVSINT","TOP1_PCT":67.0,"TOP2_IND":"Viv. hacinamiento (64.0%)","TOP3_IND":"Sin educ. básica (31.7%)","ETIQUETA_M":"AGEB 0262 | Pesquería | Grado: Alto","POPUP_HTML":"<b>AGEB 0262</b> — Pesquería<br><b>Grado:</b> Alto | <b>IM:</b> 118.14<br><b>Pob:</b> 100<br>������ Viv. sin internet (67.0%)<br>������ Viv. hacinamiento (64.0%)<br>������ Sin educ. básica (31.7%)"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-100.037617,25.796732],[-100.038458,25.796465],[-100.03854,25.797044],[-100.038543,25.797074],[-100.038599,25.797652],[-100.038606,25.79769],[-100.038625,25.797765],[-100.038653,25.797916],[-100.03867,25.798012],[-100.038725,25.798138],[-100.038781,25.798223],[-100.038907,25.798266],[-100.038861,25.798293],[-100.039083,25.798546],[-100.039553,25.799076],[-100.039575,25.799101],[-100.039572,25.799114],[-100.039819,25.799392],[-100.039933,25.799528],[-100.040031,25.79965],[-100.039938,25.79968],[-100.039846,25.79971],[-100.03943,25.799856],[-100.039013,25.800002],[-100.038607,25.800147],[-100.038383,25.800227],[-100.03838,25.800228],[-100.037618,25.8005],[-100.037617,25.800499],[-100.036714,25.799501],[-100.036448,25.799193],[-100.036158,25.798882],[-100.035936,25.797309],[-100.035936,25.797307],[-100.036963,25.796953],[-100.036966,25.796953],[-100.036966,25.796952],[-100.037614,25.796733],[-100.037617,25.796732]]]]}}]}
 
-// ── MAP INIT ───────────────────────────────────────────────────────────────────
+// ── MAP ───────────────────────────────────────────────────────────────────────
 const map = L.map('map', { zoomControl:false, attributionControl:false });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:20 }).addTo(map);
 map.setView([25.67, -100.31], 11);
 
-// AGEB polygons
 const GM_COLOR = { 'Muy alto':'#C0392B', 'Alto':'#D35400', 'Medio':'#B7950B', 'Bajo':'#2E86AB' };
 L.geoJSON(GEOJSON, {
-  style: f => ({
-    color:'#111', weight:1,
-    fillColor: GM_COLOR[f.properties.GM_20_2021] || '#555',
-    fillOpacity: 0.55
-  }),
-  onEachFeature: (f,l) => {
+  style: f => ({ color:'#111', weight:1, fillColor: GM_COLOR[f.properties.GM_20_2021]||'#555', fillOpacity:0.55 }),
+  onEachFeature: (f, l) => {
     const p = f.properties;
-    l.bindPopup(`<b>${p.AGEB}</b> · ${p.NOM_MUN}<br><b>IM:</b> ${p.IM_2020?.toFixed(1)} · <b>${p.GM_20_2021}</b><br><small>★ ${p.TOP1_IND}</small>`);
+    l.bindPopup('<b>' + p.AGEB + '</b> · ' + p.NOM_MUN + '<br><b>IM:</b> ' + (p.IM_2020||0).toFixed(1) + ' · <b>' + p.GM_20_2021 + '</b><br><small>' + p.TOP1_IND + '</small>');
   }
 }).addTo(map);
 
-// ── REAL-TIME GPS ──────────────────────────────────────────────────────────────
-let liveMarker = null;
-let geoActual  = { lat:null, lon:null, acc:null };
-const liveIcon = L.divIcon({ className:'', html:'<div class="live-dot"></div>', iconSize:[14,14], iconAnchor:[7,7] });
+// ── GPS ───────────────────────────────────────────────────────────────────────
+var geo = { lat:null, lon:null, acc:null };
+var liveMarker = null;
+var liveIcon = L.divIcon({ className:'', html:'<div class="live-dot"></div>', iconSize:[14,14], iconAnchor:[7,7] });
 
-function startGPS() {
-  if (!navigator.geolocation) {
-    setGpsUI('err', '✕ GPS no disponible', '');
-    return;
-  }
-  // Check permission badge
-  if (navigator.permissions) {
-    navigator.permissions.query({name:'geolocation'}).then(r => {
-      updatePermBadge(r.state);
-      r.onchange = () => updatePermBadge(r.state);
-    }).catch(()=>{});
-  }
-  navigator.geolocation.watchPosition(pos => {
-    geoActual = { lat:pos.coords.latitude, lon:pos.coords.longitude, acc:Math.round(pos.coords.accuracy) };
-    const ll = [geoActual.lat, geoActual.lon];
+if (navigator.permissions) {
+  navigator.permissions.query({ name:'geolocation' }).then(function(r) {
+    updatePerm(r.state);
+    r.onchange = function() { updatePerm(r.state); };
+  }).catch(function(){});
+}
+
+function updatePerm(s) {
+  var el = document.getElementById('perm-badge');
+  if (s === 'granted')     { el.textContent = '● OK';       el.style.color = 'var(--grn)'; }
+  else if (s === 'denied') { el.textContent = '✕ Denegado'; el.style.color = 'var(--red)'; }
+  else                     { el.textContent = '◌ Pendiente';el.style.color = 'var(--mut)'; }
+}
+
+navigator.geolocation.watchPosition(
+  function(pos) {
+    geo.lat = pos.coords.latitude;
+    geo.lon = pos.coords.longitude;
+    geo.acc = Math.round(pos.coords.accuracy);
+    var ll = [geo.lat, geo.lon];
     if (!liveMarker) {
       liveMarker = L.marker(ll, { icon:liveIcon, zIndexOffset:1000 }).addTo(map);
       map.setView(ll, 14);
     } else {
       liveMarker.setLatLng(ll);
     }
-    setGpsUI('ok', `● ${geoActual.lat.toFixed(5)}, ${geoActual.lon.toFixed(5)}`, `±${geoActual.acc}m`);
-    updatePermBadge('granted');
+    var bar = document.getElementById('gps-bar');
+    bar.className = 'ok';
+    document.getElementById('gps-label').textContent = '● ' + geo.lat.toFixed(5) + ', ' + geo.lon.toFixed(5);
+    document.getElementById('gps-acc').textContent = '±' + geo.acc + 'm';
+    updatePerm('granted');
     checkReady();
-  }, err => {
-    const msgs = {1:'Permiso denegado', 2:'Señal no disponible', 3:'Tiempo agotado'};
-    setGpsUI('err', `✕ ${msgs[err.code]||'Error GPS'} — verifica permisos`, '');
-    if (err.code === 1) updatePermBadge('denied');
-  }, { enableHighAccuracy:true, maximumAge:3000 });
-}
+  },
+  function(err) {
+    var msgs = { 1:'Permiso denegado — actívalo en ajustes', 2:'Señal GPS no disponible', 3:'Tiempo agotado' };
+    var bar = document.getElementById('gps-bar');
+    bar.className = 'err';
+    document.getElementById('gps-label').textContent = '✕ ' + (msgs[err.code] || 'Error GPS');
+    document.getElementById('gps-acc').textContent = '';
+    if (err.code === 1) updatePerm('denied');
+  },
+  { enableHighAccuracy:true, maximumAge:3000 }
+);
 
-function setGpsUI(state, label, acc) {
-  const bar = document.getElementById('gps-bar');
-  bar.className = state === 'ok' ? 'gps-ok' : state === 'err' ? 'gps-err' : 'gps-idle';
-  document.getElementById('gps-label').textContent = label;
-  document.getElementById('gps-acc').textContent   = acc;
-}
-
-function updatePermBadge(state) {
-  const el = document.getElementById('perm-badge');
-  const map = { granted:['● OK','var(--green)'], denied:['✕ Denegado','var(--red)'], prompt:['◌ Sin otorgar','var(--mut)'] };
-  const [txt, col] = map[state] || ['','var(--mut)'];
-  el.textContent = txt;
-  el.style.color = col;
-}
-
-startGPS();
-
-// ── SUBCATS ────────────────────────────────────────────────────────────────────
-const SUBCATS = {
-  "Educación": ["Niños 6-14 sin asistencia escolar","Sin educación básica (adultos)","Escuela funcional","Escuela deteriorada/cerrada","Alta deserción escolar"],
-  "Salud": ["Sin derechohabiencia/servicio de salud","Centro de salud presente","Ausencia de servicios de salud","Clínica o consultorio cercano","Trabajo informal predominante"],
-  "Vivienda · Servicios": ["Sin drenaje / fosa séptica","Drenaje a red","Sin electricidad / diablito","Electricidad formal","Sin agua entubada / toma irregular","Agua entubada","Pisos de tierra"],
-  "Vivienda · Condiciones": ["Hacinamiento evidente","Paredes de lámina/cartón","Paredes de block/ladrillo","Techo de lámina","Sin refrigerador u otros bienes","Ventanas improvisadas"],
-  "Conectividad": ["Sin internet (estimado)","Sin señal celular","Sin dispositivos / computadora","Infraestructura de red visible"],
-  "Incidencia Urbana": ["Escombro","Basura / tiradero","Parque en mal estado","Bache","Calle en mal estado","Luminaria dañada/ausente","Drenaje tapado/desbordado","Vandalismo / grafiti","Fauna nociva","Construcción irregular"],
-  "Clasificación AGEB": ["Marginación: Muy alta","Marginación: Alta","Marginación: Media","Marginación: Baja","Rezago: Muy alto","Rezago: Alto","Rezago: Medio","Rezago: Bajo"]
-};
-
-let selPills = new Set();
-
-function renderPills() {
-  selPills = new Set();
-  document.getElementById('pill-count').textContent = '';
-  const cat  = document.getElementById('c-cat').value;
-  const opts = SUBCATS[cat] || [];
-  document.getElementById('pills').innerHTML = opts.map(o =>
-    `<span class="pill" onclick="togglePill(this,'${o.replace(/'/g,"\'")}')"> ${o}</span>`
-  ).join('');
-}
-
-function togglePill(el, val) {
-  if (selPills.has(val)) { selPills.delete(val); el.classList.remove('on'); }
-  else                   { selPills.add(val);    el.classList.add('on');    }
-  const n = selPills.size;
-  document.getElementById('pill-count').textContent = n ? n+' sel.' : '';
-}
-
-// ── FORM ───────────────────────────────────────────────────────────────────────
-function checkReady() {
-  const ready = !!geoActual.lat;
-  document.getElementById('btn-reg').classList.toggle('on', ready);
-  document.getElementById('hint').textContent = !geoActual.lat ? 'Esperando GPS…' : '';
-}
-
-// ── POINTS ────────────────────────────────────────────────────────────────────
-let puntos = JSON.parse(localStorage.getItem('campo_v2') || '[]');
-let ptMarkers = [];
-
-const ptIcon = (n) => L.divIcon({ className:'', html:`<div class="campo-dot">${n}</div>`, iconSize:[22,22], iconAnchor:[11,11] });
-
-function addMarker(p, idx) {
-  const m = L.marker([p.lat, p.lon], { icon: ptIcon(idx+1) }).addTo(map);
-  m.bindPopup(`<b>${p.nombre}</b><br><small>${p.categoria}</small>`);
-  ptMarkers.push(m);
-}
-
-function registrar() {
-  const nombre = document.getElementById('c-nombre').value.trim();
-  if (!geoActual.lat || !nombre) return;
-  const p = {
-    id: Date.now(), ts: new Date().toISOString(),
-    lat: geoActual.lat, lon: geoActual.lon, acc: geoActual.acc,
-    nombre, categoria: document.getElementById('c-cat').value,
-    subcategorias: [...selPills],
-    notas: document.getElementById('c-notas').value.trim()
-  };
-  puntos.unshift(p);
-  save();
-  addMarker(p, 0);
-  // Renumber existing markers
-  ptMarkers.forEach((m,i) => m.setIcon(ptIcon(i+1)));
-  document.getElementById('c-nombre').value = '';
-  document.getElementById('c-notas').value  = '';
-  selPills = new Set();
-  renderPills();
-  checkReady();
-  renderList();
-}
-
-function save() {
-  localStorage.setItem('campo_v2', JSON.stringify(puntos));
-}
-
-function renderList() {
-  const el  = document.getElementById('pt-list');
-  const row = document.getElementById('exp-row');
-  row.style.display = puntos.length ? 'flex' : 'none';
-  if (!puntos.length) { el.innerHTML = '<div class="empty">Sin puntos registrados</div>'; return; }
-  // Group by grupo_id to show capture groups
-  const grupos = {};
-  puntos.forEach(p => {
-    const gid = p.grupo_id || p.id;
-    if (!grupos[gid]) grupos[gid] = [];
-    grupos[gid].push(p);
+// ── PILLS ─────────────────────────────────────────────────────────────────────
+// Attach click handlers to all pills
+document.querySelectorAll('.pill').forEach(function(el) {
+  el.addEventListener('click', function() {
+    el.classList.toggle('on');
+    updateSelCount();
   });
-
-  const grupoKeys = [...new Set(puntos.map(p => p.grupo_id || p.id))];
-
-  el.innerHTML = grupoKeys.map((gid, gi) => {
-    const grp  = grupos[gid];
-    const first = grp[0];
-    const d    = new Date(first.ts);
-    const ts   = d.toLocaleDateString('es-MX') + ' ' + d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-    const agebTxt = first.ageb ? `AGEB ${first.ageb} · ${esc(first.municipio)} · ${esc(first.grado_marginacion)}` : 'Fuera de zona';
-    const obs  = grp.map(p => `<span style="display:inline-block;background:#222;border:1px solid #333;border-radius:10px;padding:2px 8px;font-size:10px;margin:2px">${esc(p.observacion||p.categoria)}</span>`).join('');
-    return `<div class="pt" onclick="flyTo(${first.lat},${first.lon})">
-      <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <div class="pt-name">${gi+1}. ${esc(first.nombre.split('·')[0])} <span style="color:var(--mut);font-size:10px">${grp.length} obs.</span></div>
-      </div>
-      <div style="margin:4px 0">${obs}</div>
-      <div class="pt-sub" style="color:#B7950B">${agebTxt}</div>
-      <div class="pt-ts">${ts} · ±${first.acc}m</div>
-    </div>`;
-  }).join('');
-}
-
-function flyTo(lat, lon) { map.flyTo([lat,lon], 17); }
-
-// ── TABS ───────────────────────────────────────────────────────────────────────
-function setTab(t) {
-  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('on', (i===0)===(t==='captura')));
-  document.getElementById('tab-captura').classList.toggle('on', t==='captura');
-  document.getElementById('tab-lista').classList.toggle('on', t==='lista');
-}
-
-// ── PANEL TOGGLE ───────────────────────────────────────────────────────────────
-document.getElementById('handle').addEventListener('click', () => {
-  document.getElementById('panel').classList.toggle('expanded');
-  map.invalidateSize();
 });
 
-// ── EXPORTS ────────────────────────────────────────────────────────────────────
-function expGeoJSON() {
-  const gj = { type:'FeatureCollection', features: puntos.map(p => ({
-    type:'Feature',
-    geometry:{ type:'Point', coordinates:[p.lon,p.lat] },
-    properties:{ id:p.id, nombre:p.nombre, categoria:p.categoria, subcategorias:(p.subcategorias||[]).join(' | '), notas:p.notas, precision_m:p.acc, fecha:p.ts }
-  }))};
-  dl(JSON.stringify(gj,null,2), `campo_${hoy()}.geojson`, 'application/json');
-}
-function expCSV() {
-  const rows = puntos.map(p=>[p.id,`"${p.nombre}"`,`"${p.categoria}"`,`"${(p.subcategorias||[]).join(' | ')}"`,p.lat,p.lon,p.acc,`"${p.notas}"`,p.ts].join(','));
-  dl(['id,nombre,categoria,subcategorias,lat,lon,precision_m,notas,fecha',...rows].join('\n'), `campo_${hoy()}.csv`, 'text/csv');
+function updateSelCount() {
+  var n = document.querySelectorAll('.pill.on').length;
+  document.getElementById('sel-count').textContent = n > 0 ? n + ' seleccionadas' : '';
 }
 
-// ── POINT-IN-POLYGON (ray casting) ───────────────────────────────────────────
-function pointInPolygon(lat, lon, coords) {
-  let inside = false;
-  for (let k = 0; k < coords.length; k++) {
-    const ring = coords[k];
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const xi = ring[i][0], yi = ring[i][1];
-      const xj = ring[j][0], yj = ring[j][1];
-      if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+function getSelected() {
+  var result = [];
+  document.querySelectorAll('.pill.on').forEach(function(el) {
+    result.push({ cat: el.dataset.cat, val: el.dataset.val });
+  });
+  return result;
+}
+
+function clearPills() {
+  document.querySelectorAll('.pill.on').forEach(function(el) { el.classList.remove('on'); });
+  document.getElementById('sel-count').textContent = '';
+}
+
+// ── FORM ──────────────────────────────────────────────────────────────────────
+function checkReady() {
+  var ok = !!geo.lat;
+  document.getElementById('btn-reg').classList.toggle('on', ok);
+}
+
+// ── POINT-IN-POLYGON ──────────────────────────────────────────────────────────
+function pip(lat, lon, coords) {
+  var inside = false;
+  for (var k = 0; k < coords.length; k++) {
+    var ring = coords[k];
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi))
         inside = !inside;
-      }
     }
   }
   return inside;
 }
 
 function detectAGEB(lat, lon) {
-  for (const f of GEOJSON.features) {
-    const geom = f.geometry;
-    const coords = geom.type === 'MultiPolygon'
-      ? geom.coordinates.flat(1)
-      : geom.coordinates;
-    if (pointInPolygon(lat, lon, coords)) {
+  for (var i = 0; i < GEOJSON.features.length; i++) {
+    var f = GEOJSON.features[i];
+    var geom = f.geometry;
+    var coords = geom.type === 'MultiPolygon' ? geom.coordinates.flat(1) : geom.coordinates;
+    if (pip(lat, lon, coords)) {
       return {
-        cvegeo: f.properties.CVEGEO,
-        ageb:   f.properties.AGEB,
+        cvegeo:    f.properties.CVEGEO,
+        ageb:      f.properties.AGEB,
         municipio: f.properties.NOM_MUN,
-        grado: f.properties.GM_20_2021,
-        im: f.properties.IM_2020,
-        irs: f.properties.IRS_CARTO,
-        top1: f.properties.TOP1_IND
+        grado:     f.properties.GM_20_2021,
+        im:        f.properties.IM_2020,
+        irs:       f.properties.IRS_CARTO,
+        top1:      f.properties.TOP1_IND
       };
     }
   }
   return { cvegeo:'', ageb:'', municipio:'', grado:'', im:'', irs:'', top1:'' };
 }
 
-// Override registrar: one record per observation (for Power BI filtering)
-const _origRegistrar = registrar;
-registrar = function() {
-  if (!geoActual.lat) return;
-  const sels     = getSeleccionadas();
-  const agebInfo = detectAGEB(geoActual.lat, geoActual.lon);
-  const ts       = new Date();
-  const notas    = document.getElementById('c-notas').value.trim();
-  const grupo_id = Date.now(); // shared across all records from this capture
-  const hora     = ts.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-  const base_nombre = agebInfo.ageb ? `${agebInfo.ageb}·${hora}` : `Pt·${hora}`;
+// ── DATA ──────────────────────────────────────────────────────────────────────
+var puntos = JSON.parse(localStorage.getItem('campo_v3') || '[]');
+var markers = [];
 
-  // If nothing selected, save one record with just notas
-  const items = sels.length > 0 ? sels : [{ cat: 'Sin categoría', val: '' }];
+function ptIcon(n) {
+  return L.divIcon({ className:'', html:'<div class="campo-dot">' + n + '</div>', iconSize:[22,22], iconAnchor:[11,11] });
+}
 
-  const nuevos = items.map((s, i) => ({
-    id: grupo_id + i,
-    grupo_id,                          // links all records from same capture
-    ts: ts.toISOString(),
-    lat: geoActual.lat, lon: geoActual.lon, acc: geoActual.acc,
-    nombre: `${base_nombre}${items.length > 1 ? '·'+(i+1) : ''}`,
-    categoria: s.cat,
-    observacion: s.val,                // single observation per row
-    notas,
-    cvegeo: agebInfo.cvegeo,
-    ageb: agebInfo.ageb,
-    municipio: agebInfo.municipio,
-    grado_marginacion: agebInfo.grado,
-    im_2020: agebInfo.im,
-    irs: agebInfo.irs,
-    top1_indicador: agebInfo.top1
-  }));
+function addMarker(p, n) {
+  var m = L.marker([p.lat, p.lon], { icon: ptIcon(n) }).addTo(map);
+  m.bindPopup('<b>' + esc(p.nombre) + '</b><br><small>' + esc(p.categoria) + '</small>');
+  markers.push(m);
+}
 
-  // Prepend all new records
-  puntos.unshift(...nuevos);
-  save();
+// ── REGISTRAR ─────────────────────────────────────────────────────────────────
+function registrar() {
+  if (!geo.lat) return;
 
-  // Single marker for the group (first record)
-  addMarker(nuevos[0], 0);
-  ptMarkers.forEach((m,i) => m.setIcon(ptIcon(i+1)));
+  var sels     = getSelected();
+  var ageb     = detectAGEB(geo.lat, geo.lon);
+  var now      = new Date();
+  var hora     = now.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+  var grupoId  = Date.now();
+  var base     = ageb.ageb ? ageb.ageb + '·' + hora : 'Pt·' + hora;
+  var notas    = document.getElementById('c-notas').value.trim();
 
+  // One record per observation; if nothing selected, save one general record
+  var items = sels.length > 0 ? sels : [{ cat:'General', val:'' }];
+
+  var nuevos = items.map(function(s, i) {
+    return {
+      id:               grupoId + i,
+      grupo_id:         grupoId,
+      ts:               now.toISOString(),
+      lat:              geo.lat,
+      lon:              geo.lon,
+      acc:              geo.acc,
+      nombre:           base + (items.length > 1 ? '·' + (i + 1) : ''),
+      categoria:        s.cat,
+      observacion:      s.val,
+      notas:            notas,
+      cvegeo:           ageb.cvegeo,
+      ageb:             ageb.ageb,
+      municipio:        ageb.municipio,
+      grado_marginacion:ageb.grado,
+      im_2020:          ageb.im,
+      irs:              ageb.irs,
+      top1_indicador:   ageb.top1
+    };
+  });
+
+  puntos = nuevos.concat(puntos);
+  localStorage.setItem('campo_v3', JSON.stringify(puntos));
+
+  // Add single marker for this group
+  var n = markers.length + 1;
+  addMarker(nuevos[0], n);
+
+  // Reset form
   document.getElementById('c-notas').value = '';
   clearPills();
-  checkReady();
+
+  // Flash confirmation
+  var btn = document.getElementById('btn-reg');
+  btn.textContent = '✓ ' + nuevos.length + ' registro' + (nuevos.length > 1 ? 's' : '') + ' guardado' + (nuevos.length > 1 ? 's' : '');
+  btn.style.background = '#1a3a1a';
+  btn.style.color = 'var(--grn)';
+  setTimeout(function() {
+    btn.textContent = '⊕ Registrar punto';
+    btn.style.background = '';
+    btn.style.color = '';
+  }, 1500);
+
   renderList();
+}
 
-  // Flash confirmation showing how many records
-  const btn = document.getElementById('btn-reg');
-  btn.textContent = `✓ ${nuevos.length} registro${nuevos.length>1?'s':''} guardado${nuevos.length>1?'s':''}`;
-  btn.style.background = '#2d5a2d';
-  setTimeout(() => { btn.textContent = '⊕ Registrar punto'; btn.style.background = ''; }, 1500);
-};
+// ── LIST ──────────────────────────────────────────────────────────────────────
+function renderList() {
+  var el  = document.getElementById('pt-list');
+  var row = document.getElementById('exp-row');
 
-// ── POWER BI-OPTIMIZED EXPORTS ────────────────────────────────────────────────
+  if (puntos.length === 0) {
+    el.innerHTML = '<div class="empty">Sin puntos registrados</div>';
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'flex';
+
+  // Group by grupo_id
+  var grupos = {};
+  var order  = [];
+  puntos.forEach(function(p) {
+    var gid = p.grupo_id || p.id;
+    if (!grupos[gid]) { grupos[gid] = []; order.push(gid); }
+    grupos[gid].push(p);
+  });
+
+  el.innerHTML = order.map(function(gid, gi) {
+    var grp   = grupos[gid];
+    var first = grp[0];
+    var d     = new Date(first.ts);
+    var ts    = d.toLocaleDateString('es-MX') + ' ' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    var agebTxt = first.ageb ? 'AGEB ' + first.ageb + ' · ' + esc(first.municipio) + ' · ' + esc(first.grado_marginacion) : 'Fuera de zona';
+    var tags  = grp.filter(function(p) { return p.observacion; }).map(function(p) {
+      return '<span class="pt-tag">' + esc(p.observacion) + '</span>';
+    }).join('');
+
+    return '<div class="pt" onclick="flyTo(' + first.lat + ',' + first.lon + ')">' +
+      '<div class="pt-name">' + (gi + 1) + '. ' + esc(first.nombre.split("·")[0]) +
+        (grp.length > 1 ? ' <span style="color:var(--mut);font-size:10px">' + grp.length + ' obs.</span>' : '') + '</div>' +
+      (tags ? '<div class="pt-obs">' + tags + '</div>' : '') +
+      '<div class="pt-ageb">' + agebTxt + '</div>' +
+      '<div class="pt-ts">' + ts + ' · ±' + first.acc + 'm</div>' +
+    '</div>';
+  }).join('');
+}
+
+function flyTo(lat, lon) { map.flyTo([lat, lon], 17); }
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function setTab(t) {
+  document.querySelectorAll('.tab').forEach(function(el, i) {
+    el.classList.toggle('on', (i === 0) === (t === 'cap'));
+  });
+  document.getElementById('tp-cap').classList.toggle('on', t === 'cap');
+  document.getElementById('tp-lst').classList.toggle('on', t === 'lst');
+}
+
+document.getElementById('handle').addEventListener('click', function() {
+  document.getElementById('panel').classList.toggle('exp');
+  map.invalidateSize();
+});
+
+// ── EXPORTS ───────────────────────────────────────────────────────────────────
 function expCSV() {
-  // One row per observation — flat structure optimized for Power BI
-  const cols = [
-    'id','grupo_id','fecha','hora',
-    'categoria','observacion',
-    'notas',
-    'lat','lon','precision_m',
-    'cvegeo','ageb','municipio','grado_marginacion','im_2020','irs','top1_indicador'
-  ];
-
-  const rows = puntos.map(p => {
-    const d     = new Date(p.ts);
-    const fecha = d.toLocaleDateString('es-MX', {year:'numeric',month:'2-digit',day:'2-digit'});
-    const hora  = d.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const q     = s => `"${(s||'').replace(/"/g,'""')}"`;
+  var cols = ['id','grupo_id','fecha','hora','categoria','observacion','notas','lat','lon','precision_m','cvegeo','ageb','municipio','grado_marginacion','im_2020','irs','top1_indicador'];
+  var rows = puntos.map(function(p) {
+    var d = new Date(p.ts);
+    var q = function(s) { return '"' + (s || '').replace(/"/g, '""') + '"'; };
     return [
-      p.id,
-      p.grupo_id || p.id,
-      fecha, hora,
-      q(p.categoria),
-      q(p.observacion || (p.subcategorias||[])[0] || ''),
+      p.id, p.grupo_id || p.id,
+      d.toLocaleDateString('es-MX', { year:'numeric', month:'2-digit', day:'2-digit' }),
+      d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' }),
+      q(p.categoria), q(p.observacion),
       q(p.notas),
       p.lat, p.lon, p.acc,
-      p.cvegeo||'', p.ageb||'',
+      p.cvegeo || '', p.ageb || '',
       q(p.municipio), q(p.grado_marginacion),
-      p.im_2020||'', p.irs||'',
+      p.im_2020 || '', p.irs || '',
       q(p.top1_indicador)
     ].join(',');
   });
-
-  const bom = '\uFEFF';
-  dl(bom + [cols.join(','), ...rows].join('\n'),
-     `campo_${hoy()}.csv`, 'text/csv;charset=utf-8');
+  dl('\uFEFF' + [cols.join(',')].concat(rows).join('\n'), 'campo_' + hoy() + '.csv', 'text/csv;charset=utf-8');
 }
 
-function dl(c,n,t){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([c],{type:t})); a.download=n; a.click(); }
-function hoy(){ return new Date().toISOString().slice(0,10); }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function expGeoJSON() {
+  var gj = { type:'FeatureCollection', features: puntos.map(function(p) {
+    return {
+      type:'Feature',
+      geometry:{ type:'Point', coordinates:[p.lon, p.lat] },
+      properties:{
+        id:p.id, grupo_id:p.grupo_id||p.id,
+        nombre:p.nombre, categoria:p.categoria, observacion:p.observacion,
+        notas:p.notas, precision_m:p.acc, fecha:p.ts,
+        cvegeo:p.cvegeo, ageb:p.ageb, municipio:p.municipio,
+        grado_marginacion:p.grado_marginacion, im_2020:p.im_2020,
+        irs:p.irs, top1_indicador:p.top1_indicador
+      }
+    };
+  })};
+  dl(JSON.stringify(gj, null, 2), 'campo_' + hoy() + '.geojson', 'application/json');
+}
 
-// ── INIT ───────────────────────────────────────────────────────────────────────
+function dl(c, n, t) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([c], { type:t }));
+  a.download = n;
+  a.click();
+}
+function hoy() { return new Date().toISOString().slice(0, 10); }
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+checkReady();
 renderList();
-puntos.forEach((p,i) => addMarker(p,i));
+puntos.forEach(function(p, i) {
+  if (!p.grupo_id || p.id === p.grupo_id || puntos.findIndex(function(x) { return (x.grupo_id||x.id) === (p.grupo_id||p.id); }) === i) {
+    addMarker(p, markers.length + 1);
+  }
+});
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(r => console.log('SW registrado:', r.scope))
-      .catch(e => console.warn('SW error:', e));
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js');
   });
 }
 </script>
+
 </body>
 </html>
