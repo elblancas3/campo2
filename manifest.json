@@ -1,0 +1,15 @@
+{
+  "name": "Campo · Levantamiento Geomática MX",
+  "short_name": "Campo GeoMX",
+  "description": "Levantamiento georeferenciado de indicadores CONAPO en campo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f0f",
+  "theme_color": "#D85A30",
+  "lang": "es",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
