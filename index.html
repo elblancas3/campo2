@@ -394,6 +394,20 @@ function registrar() {
 }
 
 // ── LIST ──────────────────────────────────────────────────────────────────────
+function borrarGrupo(gid) {
+  puntos = puntos.filter(function(p) { return (p.grupo_id || p.id) !== gid; });
+  localStorage.setItem('campo_v3', JSON.stringify(puntos));
+  // Rebuild markers
+  markers.forEach(function(m) { map.removeLayer(m); });
+  markers = [];
+  var seen = {};
+  puntos.forEach(function(p) {
+    var gk = p.grupo_id || p.id;
+    if (!seen[gk]) { seen[gk] = true; addMarker(p, Object.keys(seen).length); }
+  });
+  renderList();
+}
+
 function renderList() {
   var el  = document.getElementById('pt-list');
   var row = document.getElementById('exp-row');
@@ -424,12 +438,17 @@ function renderList() {
       return '<span class="pt-tag">' + esc(p.observacion) + '</span>';
     }).join('');
 
-    return '<div class="pt" onclick="flyTo(' + first.lat + ',' + first.lon + ')">' +
-      '<div class="pt-name">' + (gi + 1) + '. ' + esc(first.nombre.split("·")[0]) +
-        (grp.length > 1 ? ' <span style="color:var(--mut);font-size:10px">' + grp.length + ' obs.</span>' : '') + '</div>' +
-      (tags ? '<div class="pt-obs">' + tags + '</div>' : '') +
-      '<div class="pt-ageb">' + agebTxt + '</div>' +
-      '<div class="pt-ts">' + ts + ' · ±' + first.acc + 'm</div>' +
+    return '<div class="pt">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+        '<div onclick="flyTo(' + first.lat + ',' + first.lon + ')" style="flex:1;cursor:pointer">' +
+          '<div class="pt-name">' + (gi + 1) + '. ' + esc(first.nombre.split("·")[0]) +
+            (grp.length > 1 ? ' <span style="color:var(--mut);font-size:10px">' + grp.length + ' obs.</span>' : '') + '</div>' +
+          (tags ? '<div class="pt-obs">' + tags + '</div>' : '') +
+          '<div class="pt-ageb">' + agebTxt + '</div>' +
+          '<div class="pt-ts">' + ts + ' · ±' + first.acc + 'm</div>' +
+        '</div>' +
+        '<button onclick="borrarGrupo(' + gid + ')" style="background:var(--rbg);border:1px solid var(--rbrd);border-radius:4px;color:var(--red);font-family:inherit;font-size:10px;padding:4px 8px;cursor:pointer;flex-shrink:0;margin-left:8px;margin-top:2px">✕</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
