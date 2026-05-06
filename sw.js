@@ -1,5 +1,5 @@
 // ── Service Worker · Campo Geomática MX ──────────────────────────────────────
-const CACHE  = 'campo-v2';
+const CACHE  = 'campo-v3';   // ← sube este número cada vez que actualices la app
 const ASSETS = [
   './',
   './index.html',
@@ -24,11 +24,25 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Fetch: cache-first para assets, network-first para tiles del mapa
+// Fetch: lógica por tipo de recurso
 self.addEventListener('fetch', e => {
   const url = e.request.url;
 
-  // Tiles de mapa: siempre intentar red primero, fallback cache
+  // ── HTML principal: SIEMPRE red primero, caché como fallback offline ──
+  if (url.endsWith('/') || url.includes('index.html') || url.includes('APP_CAMPO')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // ── Tiles del mapa: red primero, fallback caché ──
   if (url.includes('basemaps.cartocdn.com')) {
     e.respondWith(
       fetch(e.request)
@@ -42,7 +56,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Resto: cache-first
+  // ── Resto (Leaflet, fuentes, etc.): caché primero ──
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
