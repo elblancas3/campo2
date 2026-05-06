@@ -526,7 +526,7 @@ function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt
 
 // ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────────
 // ⚙️  CONFIGURA: pega aquí la URL de tu Apps Script Web App
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxHcvgAbULpFiSwppXDsYfFtWLxNpgL_of2jDen7t9-SNiL0GwuZDUzvSG45uq1JRfv/exec';  // ← Reemplaza con tu URL de Apps Script
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzc9uBth7CIwN0mCHwEXHQrAhYTO_TZpUW7Y7d4ENDnB5aEYmCayr2516l9bDTWcXOI/exec';  // ← Reemplaza con tu URL de Apps Script
 
 // Cola de envíos pendientes en localStorage
 function getPendingQueue() {
@@ -591,7 +591,7 @@ function syncPendientes() {
   fetch(SHEETS_URL, {
     method: 'POST',
     mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ registros: q })
   })
   .then(function() {
