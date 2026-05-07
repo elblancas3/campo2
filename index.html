@@ -124,6 +124,10 @@ function verificarAcceso() {
   var error = document.getElementById('pwd-error');
   if (input.value === '3412') {
     document.getElementById('login-screen').style.display = 'none';
+    // Forzar redibujado del mapa tras quitar el overlay
+    setTimeout(function() {
+      if (typeof map !== 'undefined') map.invalidateSize();
+    }, 100);
   } else {
     error.style.display = 'block';
     input.style.borderColor = '#cf7e7e';
