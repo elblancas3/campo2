@@ -86,7 +86,59 @@ textarea{width:100%;padding:9px;background:var(--bg);border:1px solid var(--brd)
 </head>
 <body>
 
-<div id="map"></div>
+<!-- ── ACCESO ──────────────────────────────────────────────────────── -->
+<div id="login-screen" style="
+  position:fixed;inset:0;background:#0f0f0f;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  font-family:'IBM Plex Mono','Courier New',monospace;
+">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:9px;height:9px;border-radius:50%;background:#D85A30;animation:pulse 2s infinite"></div>
+    <span style="font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#e8e4dc">Campo · ZMM</span>
+  </div>
+  <div style="font-size:9px;color:#555;letter-spacing:2px;text-transform:uppercase">Acceso restringido</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:220px">
+    <input id="pwd-input" type="password" placeholder="· · · ·"
+      onkeydown="if(event.key==='Enter')verificarAcceso()"
+      style="
+        background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;
+        color:#e8e4dc;font-family:'IBM Plex Mono',monospace;
+        font-size:24px;letter-spacing:10px;padding:12px 14px;
+        outline:none;text-align:center;width:100%;transition:border-color .2s;
+      "
+    />
+    <div id="pwd-error" style="font-size:10px;color:#cf7e7e;text-align:center;display:none;letter-spacing:1px">
+      ✕ Contraseña incorrecta
+    </div>
+    <button onclick="verificarAcceso()" style="
+      padding:14px;background:#D85A30;border:none;border-radius:3px;
+      color:#fff;font-family:'IBM Plex Mono',monospace;font-size:10px;
+      letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-weight:700;
+    ">Entrar</button>
+  </div>
+</div>
+
+<script>
+function verificarAcceso() {
+  var input = document.getElementById('pwd-input');
+  var error = document.getElementById('pwd-error');
+  if (input.value === '3412') {
+    document.getElementById('login-screen').style.display = 'none';
+  } else {
+    error.style.display = 'block';
+    input.style.borderColor = '#cf7e7e';
+    input.value = '';
+    setTimeout(function() {
+      input.style.borderColor = '#2a2a2a';
+      error.style.display = 'none';
+    }, 1500);
+    input.focus();
+  }
+}
+window.addEventListener('load', function() {
+  document.getElementById('pwd-input').focus();
+});
+</script>
 
 <div id="legend">
   <div class="lr"><div class="ls" style="background:#C0392B"></div>Muy alto</div>
@@ -161,7 +213,6 @@ textarea{width:100%;padding:9px;background:var(--bg);border:1px solid var(--brd)
         <span class="pill" data-cat="Incidencia Urbana" data-val="Grafiti">Grafiti</span>
         <span class="pill" data-cat="Incidencia Urbana" data-val="Fauna nociva">Fauna nociva</span>
         <span class="pill" data-cat="Incidencia Urbana" data-val="Construcción irregular">Construcción irregular</span>
-        <span class="pill" data-cat="Incidencia Urbana" data-val="Vehículo abandonado">Vehículo abandonado</span>
       </div>
     </div>
 
@@ -179,9 +230,7 @@ textarea{width:100%;padding:9px;background:var(--bg);border:1px solid var(--brd)
     <div class="exp-row" id="exp-row" style="display:none">
       <button class="exp-btn" onclick="expGeoJSON()">↓ GeoJSON</button>
       <button class="exp-btn" onclick="expCSV()">↓ CSV</button>
-      <button class="exp-btn" id="btn-sync" onclick="syncPendientes()" style="border-color:#4CAF50;color:#4CAF50">↑ Sheets</button>
     </div>
-    <div id="sync-status" style="font-size:10px;color:var(--mut);padding:4px 0 0;display:none"></div>
     <div id="pt-list"><div class="empty">Sin puntos registrados</div></div>
   </div>
 </div>
@@ -374,9 +423,6 @@ function registrar() {
   puntos = nuevos.concat(puntos);
   localStorage.setItem('campo_v3', JSON.stringify(puntos));
 
-  // Queue for Google Sheets sync
-  queueForSync(nuevos);
-
   // Add single marker for this group
   var n = markers.length + 1;
   addMarker(nuevos[0], n);
@@ -524,107 +570,9 @@ function dl(c, n, t) {
 function hoy() { return new Date().toISOString().slice(0, 10); }
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────────
-// ⚙️  CONFIGURA: pega aquí la URL de tu Apps Script Web App
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzuImf3tUyI2XEIjl3_nzwAfzRgpQ_Wgdp8E1P3CorVwSEQRt_bf5ut0ND11_dPiM0j/exec';  // ← Reemplaza con tu URL de Apps Script
-
-// Cola de envíos pendientes en localStorage
-function getPendingQueue() {
-  try { return JSON.parse(localStorage.getItem('campo_sync_queue') || '[]'); }
-  catch(e) { return []; }
-}
-function savePendingQueue(q) {
-  localStorage.setItem('campo_sync_queue', JSON.stringify(q));
-}
-
-function queueForSync(points) {
-  if (!SHEETS_URL) return;
-  var q = getPendingQueue();
-  points.forEach(function(p) { q.push(p); });
-  savePendingQueue(q);
-  updateSyncBadge();
-}
-
-function updateSyncBadge() {
-  var q = getPendingQueue();
-  var btn = document.getElementById('btn-sync');
-  var status = document.getElementById('sync-status');
-  if (!btn) return;
-  if (!SHEETS_URL) {
-    btn.style.color = 'var(--mut)';
-    btn.style.borderColor = 'var(--brd)';
-    btn.title = 'Configura SHEETS_URL en el código';
-    status.style.display = 'block';
-    status.textContent = '⚠ Sheets no configurado — edita SHEETS_URL en el script';
-    return;
-  }
-  if (q.length > 0) {
-    btn.style.color = '#FFB74D';
-    btn.style.borderColor = '#FFB74D';
-    btn.textContent = '↑ Sheets (' + q.length + ')';
-    status.style.display = 'block';
-    status.textContent = q.length + ' registro(s) pendiente(s) de sincronizar';
-  } else {
-    btn.style.color = '#4CAF50';
-    btn.style.borderColor = '#4CAF50';
-    btn.textContent = '↑ Sheets ✓';
-    status.style.display = 'none';
-  }
-}
-
-function syncPendientes() {
-  if (!SHEETS_URL) {
-    alert('Configura la variable SHEETS_URL con la URL de tu Google Apps Script.\n\nVer instrucciones al final del archivo HTML.');
-    return;
-  }
-  var q = getPendingQueue();
-  if (q.length === 0) {
-    alert('No hay registros pendientes de sincronizar.');
-    return;
-  }
-
-  var btn = document.getElementById('btn-sync');
-  btn.textContent = '↑ Enviando…';
-  btn.style.color = 'var(--mut)';
-
-  // Send in batch
-  fetch(SHEETS_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ registros: q })
-  })
-  .then(function() {
-    // no-cors → opaque response, assume success if no network error
-    savePendingQueue([]);
-    updateSyncBadge();
-    showToast('✓ ' + q.length + ' registro(s) enviados a Google Sheets');
-  })
-  .catch(function(err) {
-    btn.textContent = '↑ Sheets (' + q.length + ')';
-    btn.style.color = '#FFB74D';
-    btn.style.borderColor = '#FFB74D';
-    showToast('✕ Sin conexión — se reintentará');
-  });
-}
-
-function showToast(msg) {
-  var t = document.createElement('div');
-  t.textContent = msg;
-  Object.assign(t.style, {
-    position:'fixed', bottom:'70px', left:'50%', transform:'translateX(-50%)',
-    background:'#222', color:'#e8e4dc', padding:'10px 18px',
-    borderRadius:'4px', fontSize:'12px', zIndex:'9999',
-    border:'1px solid #333', whiteSpace:'nowrap'
-  });
-  document.body.appendChild(t);
-  setTimeout(function() { t.remove(); }, 2500);
-}
-
 // ── INIT ──────────────────────────────────────────────────────────────────────
 checkReady();
 renderList();
-updateSyncBadge();
 puntos.forEach(function(p, i) {
   if (!p.grupo_id || p.id === p.grupo_id || puntos.findIndex(function(x) { return (x.grupo_id||x.id) === (p.grupo_id||p.id); }) === i) {
     addMarker(p, markers.length + 1);
@@ -642,55 +590,3 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
-<!--
-════════════════════════════════════════════════════════════
-  INSTRUCCIONES: CONECTAR CON GOOGLE SHEETS
-════════════════════════════════════════════════════════════
-
-1. Crea un Google Sheet nuevo (p.ej. "Campo_Reportes_ZMM").
-   Agrega en la fila 1 estos encabezados exactamente:
-   id | grupo_id | fecha | hora | categoria | observacion | notas |
-   lat | lon | precision_m | cvegeo | ageb | municipio |
-   grado_marginacion | im_2020 | irs | top1_indicador
-
-2. Abre el Sheet → Extensiones → Apps Script.
-   Borra el contenido y pega este código:
-
-─────────────────────────────────────────────────────────
-function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName('Datos') || ss.getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  var rows = data.registros || [];
-  rows.forEach(function(p) {
-    var d = new Date(p.ts);
-    sh.appendRow([
-      p.id, p.grupo_id,
-      Utilities.formatDate(d, 'America/Monterrey', 'dd/MM/yyyy'),
-      Utilities.formatDate(d, 'America/Monterrey', 'HH:mm:ss'),
-      p.categoria, p.observacion, p.notas,
-      p.lat, p.lon, p.acc,
-      p.cvegeo, p.ageb, p.municipio,
-      p.grado_marginacion, p.im_2020, p.irs, p.top1_indicador
-    ]);
-  });
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, n: rows.length }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-─────────────────────────────────────────────────────────
-
-3. Implementar → Nueva implementación → Web app
-   - Ejecutar como: Yo mismo
-   - Quién tiene acceso: Cualquier usuario (Anyone)
-   - Copiar la URL generada
-
-4. En esta app (APP_CAMPO.html), busca la línea:
-      var SHEETS_URL = '';
-   y reemplaza '' por tu URL entre comillas simples.
-
-Eso es todo. Desde campo, cuando tengas señal, presiona
-"↑ Sheets" en la pestaña Puntos para enviar los registros
-pendientes al Sheet en tiempo real.
-════════════════════════════════════════════════════════════
--->
