@@ -237,7 +237,9 @@ window.addEventListener('load', function() {
     <div class="exp-row" id="exp-row" style="display:none">
       <button class="exp-btn" onclick="expGeoJSON()">↓ GeoJSON</button>
       <button class="exp-btn" onclick="expCSV()">↓ CSV</button>
+      <button class="exp-btn" id="btn-sync" onclick="syncPendientes()" style="border-color:#4CAF50;color:#4CAF50">↑ Sheets</button>
     </div>
+    <div id="sync-status" style="font-size:10px;color:var(--mut);padding:4px 0 0;display:none"></div>
     <div id="pt-list"><div class="empty">Sin puntos registrados</div></div>
   </div>
 </div>
@@ -430,6 +432,9 @@ function registrar() {
   puntos = nuevos.concat(puntos);
   localStorage.setItem('campo_v3', JSON.stringify(puntos));
 
+  // Queue for Google Sheets sync
+  queueForSync(nuevos);
+
   // Add single marker for this group
   var n = markers.length + 1;
   addMarker(nuevos[0], n);
@@ -577,9 +582,88 @@ function dl(c, n, t) {
 function hoy() { return new Date().toISOString().slice(0, 10); }
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────────
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzuImf3tUyI2XEIjl3_nzwAfzRgpQ_Wgdp8E1P3CorVwSEQRt_bf5ut0ND11_dPiM0j/exec';
+
+function getPendingQueue() {
+  try { return JSON.parse(localStorage.getItem('campo_sync_queue') || '[]'); }
+  catch(e) { return []; }
+}
+function savePendingQueue(q) {
+  localStorage.setItem('campo_sync_queue', JSON.stringify(q));
+}
+
+function queueForSync(points) {
+  if (!SHEETS_URL) return;
+  var q = getPendingQueue();
+  points.forEach(function(p) { q.push(p); });
+  savePendingQueue(q);
+  updateSyncBadge();
+}
+
+function updateSyncBadge() {
+  var q = getPendingQueue();
+  var btn = document.getElementById('btn-sync');
+  var status = document.getElementById('sync-status');
+  if (!btn) return;
+  if (!SHEETS_URL) {
+    btn.style.color = 'var(--mut)'; btn.style.borderColor = 'var(--brd)';
+    status.style.display = 'block';
+    status.textContent = '⚠ Sheets no configurado';
+    return;
+  }
+  if (q.length > 0) {
+    btn.style.color = '#FFB74D'; btn.style.borderColor = '#FFB74D';
+    btn.textContent = '↑ Sheets (' + q.length + ')';
+    status.style.display = 'block';
+    status.textContent = q.length + ' registro(s) pendiente(s) de sincronizar';
+  } else {
+    btn.style.color = '#4CAF50'; btn.style.borderColor = '#4CAF50';
+    btn.textContent = '↑ Sheets ✓';
+    status.style.display = 'none';
+  }
+}
+
+function syncPendientes() {
+  if (!SHEETS_URL) { alert('SHEETS_URL no configurada.'); return; }
+  var q = getPendingQueue();
+  if (q.length === 0) { alert('No hay registros pendientes.'); return; }
+  var btn = document.getElementById('btn-sync');
+  btn.textContent = '↑ Enviando…'; btn.style.color = 'var(--mut)';
+  fetch(SHEETS_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ registros: q })
+  })
+  .then(function() {
+    savePendingQueue([]);
+    updateSyncBadge();
+    showToast('✓ ' + q.length + ' registro(s) enviados a Google Sheets');
+  })
+  .catch(function() {
+    btn.textContent = '↑ Sheets (' + q.length + ')';
+    btn.style.color = '#FFB74D'; btn.style.borderColor = '#FFB74D';
+    showToast('✕ Sin conexión — se reintentará');
+  });
+}
+
+function showToast(msg) {
+  var t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'70px', left:'50%', transform:'translateX(-50%)',
+    background:'#222', color:'#e8e4dc', padding:'10px 18px',
+    borderRadius:'4px', fontSize:'12px', zIndex:'9999',
+    border:'1px solid #333', whiteSpace:'nowrap'
+  });
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 2500);
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 checkReady();
 renderList();
+updateSyncBadge();
 puntos.forEach(function(p, i) {
   if (!p.grupo_id || p.id === p.grupo_id || puntos.findIndex(function(x) { return (x.grupo_id||x.id) === (p.grupo_id||p.id); }) === i) {
     addMarker(p, markers.length + 1);
