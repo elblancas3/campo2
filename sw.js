@@ -1,5 +1,5 @@
 // ── Service Worker · Campo Geomática MX ──────────────────────────────────────
-const CACHE  = 'campo-v3';   // ← sube este número cada vez que actualices la app
+const CACHE  = 'campo-v4';   // ← sube este número cada vez que actualices la app
 const ASSETS = [
   './',
   './index.html',
